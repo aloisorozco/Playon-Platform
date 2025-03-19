@@ -2,6 +2,8 @@ import React, { createContext, useState, useEffect, useContext } from "react"
 
 import { useParams } from 'react-router-dom'
 
+import { useAuthState } from 'react-firebase-hooks/auth'
+
 import AuthContext from './AuthContext'
 
 const DraftContext = createContext()
@@ -29,7 +31,8 @@ export const DraftProvider = (({children}) => {
 
   const getCurTeamToDraft = () => {
     firestore.collection('leagues').doc(id).onSnapshot((snapshot) => {
-      setCurTeamToDraft(snapshot.data().curTeamToDraft)
+      //console.log(snapshot.data().draftOrder[snapshot.data().draftPlace])
+      setCurTeamToDraft(snapshot.data().draftOrder[snapshot.data().draftPlace])
     })
   }
 

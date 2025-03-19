@@ -51,7 +51,7 @@ function League() {
   return (
     <div className='grid place-items-center'>
       <div className="card w-60 bg-base-100 shadow-xl">
-        <table className="table text-lg w-full text-center">
+        <table className="table text-lg w-full text-left">
           {/* head */}
           <thead>
             {(leagueNameLoading) ? <></> : <tr>
@@ -67,7 +67,7 @@ function League() {
               </th>
             </tr>}
           </thead>
-          <tbody>
+          <tbody className='flex flex-col'>
             {teams.map( (team, index) => (
               <TeamItem team={team} index={index} key={team.id} />
             ))}
@@ -80,12 +80,12 @@ function League() {
 
 function TeamItem({team, index}) {
   return (
-    <tr className='hover' id={team.id}>
-      <Link to={`team/${team.id}`}>
+    <Link to={`team/${team.id}`}>
+      <tr className='hover flex flex-row' id={team.id}>
         <th>{index + 1}</th>
-        <td>{team.name}</td>
-      </Link>
-    </tr>
+        <td className='grow'>{team.name}</td>
+      </tr>
+    </Link>
   )
 }
 
