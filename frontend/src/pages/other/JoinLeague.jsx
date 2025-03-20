@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom';
 
 function JoinLeague() {
 
-  const {auth, firestore} = useContext(AuthContext)
+  const { auth, firestore } = useContext(AuthContext)
 
   const [code, setCode] = useState('')
   const [error, setError] = useState()
@@ -55,7 +55,7 @@ function JoinLeague() {
           inLeague = true
         }
       })
-      
+
       if (!inLeague) {
         addTeam(leagueId)
       }
@@ -100,10 +100,10 @@ function JoinLeague() {
       <div className="card w-60 bg-base-100 shadow-xl">
         <div className="card-body items-center text-center">
           <h2 className="card-title mb-2">Join League</h2>
-        
+
           <form onSubmit={handleSubmit}>
             <div className="form-control space-y-4">
-              <input type='text' placeholder='league code' className="input w-full text-center max-w-xs" id='code' key='code' onChange={handleCodeChange}/>
+              <input type='text' placeholder='league code' className="input w-full text-center max-w-xs" id='code' key='code' onChange={handleCodeChange} />
               <button type='submit' className='btn btn-ghost'>
                 Submit
               </button>
