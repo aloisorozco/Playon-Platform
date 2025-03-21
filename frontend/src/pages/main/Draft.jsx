@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect, useRef, createContext } from 'react'
+import React, { useContext, useState, useEffect, useRef } from 'react'
 
 import 'firebase/compat/firestore'
 import 'firebase/compat/auth'
@@ -8,16 +8,21 @@ import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+
 import AuthContext from '../../context/AuthContext'
-import { useParams } from 'react-router-dom'
 import DraftContext from '../../context/DraftContext'
 
 const activeTab = 'tab tab-lg tab-lifted tab-active'
 const disabledTab = 'tab tab-lg tab-lifted'
-const siblings = n => [...n.parentElement.children].filter(c => c != n)
+const siblings = n => [...n.parentElement.children].filter(c => c !== n)
 
 function Draft() {
 
@@ -38,7 +43,7 @@ function Draft() {
 
   return (
     <div className='grid place-items-center'>
-      <div className='card w-[60vh] bg-base 100 shadow-xl'>
+      <div className='card w-[60vw] bg-base 100 shadow-xl'>
         {/* {<div className='card-title p-2 justify-center'>
           Draft
         </div>} */}
@@ -51,9 +56,9 @@ function Draft() {
           </div>
 
           <div className="tabs justify-center">
-            <a className={disabledTab} id='players' onClick={onTabClick}>Players</a>
-            <a className={activeTab} id='draftOrder' onClick={onTabClick}>Draft</a>
-            <a className={disabledTab} id='teams' onClick={onTabClick}>Teams</a>
+            <p className={disabledTab} id='players' onClick={onTabClick}>Players</p>
+            <p className={activeTab} id='draftOrder' onClick={onTabClick}>Draft</p>
+            <p className={disabledTab} id='teams' onClick={onTabClick}>Teams</p>
           </div>
         </div>
       </div>
@@ -90,7 +95,7 @@ function Players() {
   const draftPlayer = async () => {
 
     const userTeam = teams.find((team) => {
-      return team.managerId == user.uid
+      return team.managerId === user.uid
     })
 
     firestore.collection('leagues').doc(id).collection('players').doc(playerToDraft[0].id).update({
@@ -109,7 +114,7 @@ function Players() {
   }
 
   useEffect(() => {
-    if (playerToDraft != null && playerToDraft.length != 0) {
+    if (playerToDraft != null && playerToDraft.length !== 0) {
       draftPlayer()
     }
   }, playerToDraft)
@@ -117,10 +122,10 @@ function Players() {
   useEffect(() => {
     //console.log('reloaded players')
     const userTeam = teams.find((team) => {
-      return team.managerId == user.uid
+      return team.managerId === user.uid
     })
-    setCanDraft(userTeam.id == curTeamToDraft)
-  }, curTeamToDraft)
+    setCanDraft(userTeam.id === curTeamToDraft)
+  }, [curTeamToDraft])
   //TODO: maybe we can just change to curTeamToDraft cuz we should be updating when we draft
 
   return (
@@ -155,74 +160,99 @@ function PlayerItem({ player, canDraft, getPlayerId }) {
 
   const [user, loading] = useAuthState(auth)
 
-  const [openDialog, setOpenDialog] = React.useState(false);
+  const [open, setOpen] = React.useState(false);
 
-  const handleOpenDialog = () => setOpenDialog(!openDialog);
-
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
-  };
-
-  const handleDraft = (e) => {
-    e.preventDefault()
-
-    const draftedPlayer = {
-      'name': e.target.name.value
-    }
-
-    getPlayerId(draftedPlayer)
+  const handleDraft = () => {
+    getPlayerId({
+      'name': player.name
+    })
   }
 
   return (
-    <div className='hover' id={player.id} key={player.id} onClick={handleOpenDialog}>
-      <div>
-        <form onSubmit={handleDraft}>
-          <div className='flex flex-row space-x-4 justify-center'>
-            <input type='text' id='team' key='team' value={player.team} className='w-[8ch] focus:outline-none' readOnly />
-            <input type='text' id='position' key='position' value={player.position} className='w-[5ch] focus:outline-none' readOnly />
-            <input type='text' id='name' key='name' value={player.name} className={`w-[30ch] focus:outline-none`} readOnly />
-            <input type='text' id='avgFantasyPoints' key='avgFantasyPoints' value={player.avgFantasyPoints.toFixed(1)} className={`w-[5ch] focus:outline-none`} readOnly />
-            {(/*todo*/ canDraft) ?
-              <div className='pr-4'>
-                <button className='btn btn-sm'>Draft</button>
+    <>
+      <div id={player.id} key={player.id} >
+        <div>
+          <form>
+            <div className='flex flex-row space-x-4 justify-center'>
+              <div className='hover:scale-105' onClick={() => setOpen(true)}>
+                <input type='text' id='team' key='team' value={player.team} className='w-[8ch] focus:outline-none bold' readOnly />
+                <input type='text' id='position' key='position' value={player.position} className='w-[5ch] focus:outline-none' readOnly />
+                <input type='text' id='name' key='name' value={player.name} className={`w-[30ch] focus:outline-none hover:scale-105`} readOnly />
+                <input type='text' id='avgFantasyPoints' key='avgFantasyPoints' value={player.avgFantasyPoints.toFixed(1)} className={`w-[5ch] focus:outline-none`} readOnly />
               </div>
-              :
-              <div className='pr-4'>
-                <button className='btn btn-sm btn-disabled'>Draft</button>
-              </div>
-            }
-          </div>
-        </form>
+              {(/*todo*/ canDraft) ?
+                <div className='pr-4'>
+                  <button type="button" className='btn btn-sm' onClick={handleDraft}>Draft</button>
+                </div>
+                :
+                <div className='pr-4'>
+                  <button type="button" className='btn btn-sm btn-disabled'>Draft</button>
+                </div>
+              }
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
+      <PlayerPopup player={player} canDraft={canDraft} handleDraft={handleDraft} setOpen={setOpen} open={open} />
+    </>
+
   )
 }
 
-function PlayerPopup({ player, canDraft, getPlayerId, handleCloseDialog, openDialog }) {
+function PlayerPopup({ player, canDraft, handleDraft, setOpen, open }) {
 
   return (
     <Dialog
-      open={openDialog}
-      onClose={handleCloseDialog}
+      open={open}
+      onClose={() => setOpen(false)}
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
     >
       <DialogTitle id="alert-dialog-title">
-        {"Use Google's location service?"}
+        {`${player.name}'s Regular Season Average Stats`}
       </DialogTitle>
       <DialogContent>
-        <DialogContentText id="alert-dialog-description">
-          Let Google help apps determine location. This means sending anonymous
-          location data to Google, even when no apps are running.
-        </DialogContentText>
+        <TableContainer>
+          <Table aria-label="simple table">
+            <TableHead>
+              <TableRow>
+                <TableCell align="right">Points</TableCell>
+                <TableCell align="right">Assists</TableCell>
+                <TableCell align="right">Rebounds</TableCell>
+                <TableCell align="right">Steals</TableCell>
+                <TableCell align="right">Blocks</TableCell>
+                <TableCell align="right">Turnovers</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              <TableRow
+                key={player.name}
+                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+              >
+                <TableCell align="right">{player.avg_points}</TableCell>
+                <TableCell align="right">{player.avg_assists}</TableCell>
+                <TableCell align="right">{player.avg_rebounds}</TableCell>
+                <TableCell align="right">{player.avg_steals}</TableCell>
+                <TableCell align="right">{player.avg_blocks}</TableCell>
+                <TableCell align="right">{player.avg_turnovers}</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </TableContainer>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleCloseDialog}>Disagree</Button>
-        <Button onClick={handleCloseDialog} autoFocus>
-          Agree
+        <Button onClick={() => setOpen(false)}>Close</Button>
+        <Button onClick={() => {
+          setOpen(false)
+          if (!canDraft) {
+            return;
+          }
+          handleDraft()
+        }} autoFocus disabled={!canDraft}>
+          Draft
         </Button>
       </DialogActions>
-    </Dialog>
+    </Dialog >
   );
 }
 
@@ -264,7 +294,7 @@ function DraftOrderItem({ draftOrderItem }) {
     <div className='hover' id={draftOrderItem.index} key={draftOrderItem.index}>
       <div>
         <form onSubmit={handleNothing}>
-          {((draftOrderItem.index - 1) % teams.length) == 0 &&
+          {((draftOrderItem.index - 1) % teams.length) === 0 &&
             <div className='justify-center text-center text-xs py-4'>Round {((draftOrderItem.index - 1) / (teams.length)) + 1}</div>
           }
           <div className='flex flex-row space-x-4 justify-center'>

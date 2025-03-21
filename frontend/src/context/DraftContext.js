@@ -40,7 +40,6 @@ export const DraftProvider = (({ children }) => {
     firestore.collection(`leagues/${id}/players`).where('teamId', '==', '').orderBy('avgFantasyPoints').onSnapshot((snapshot) => {
       let temp = []
       snapshot.forEach((item) => {
-        console.log(item.data())
         temp.push({ id: item.id, ...item.data() })
       })
       temp.reverse()
