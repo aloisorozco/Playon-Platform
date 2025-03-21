@@ -17,7 +17,7 @@ for league in leagues:
     teams = list(db.collection(f"leagues/{league.id}/teams").stream())
     teamIds = []
     for team in teams:
-        teamIds.append(team.id)
+        teamIds.append({"team": team.id})
     random.shuffle(teamIds)
 
     draftOrder = []

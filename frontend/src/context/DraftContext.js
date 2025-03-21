@@ -12,8 +12,10 @@ export const DraftProvider = (({ children }) => {
 
   const { firestore } = useContext(AuthContext)
   const [curTeamToDraft, setCurTeamToDraft] = useState()
+  const [lastDrafted, setLastDrafted] = useState()
   const [teams, setTeams] = useState([])
   const [players, setPlayers] = useState([])
+  const [draftedPlayers, setDraftedPlayers] = useState([])
   const [draftOrder, setDraftOrder] = useState([])
 
   const { id } = useParams()
@@ -29,10 +31,16 @@ export const DraftProvider = (({ children }) => {
     })
   }
 
+  const getLastDrafted = () => {
+    firestore.collection('leagues').doc(id).onSnapshot((snapshot) => {
+      setLastDrafted(snapshot.data().draftOrder[snapshot.data().draftPlace - 1])
+    })
+  }
+
   const getCurTeamToDraft = () => {
     firestore.collection('leagues').doc(id).onSnapshot((snapshot) => {
       //console.log(snapshot.data().draftOrder[snapshot.data().draftPlace])
-      setCurTeamToDraft(snapshot.data().draftOrder[snapshot.data().draftPlace])
+      setCurTeamToDraft(snapshot.data().draftOrder[snapshot.data().draftPlace]?.team)
     })
   }
 
@@ -47,8 +55,19 @@ export const DraftProvider = (({ children }) => {
     })
   }
 
+  const getDraftedPlayers = async () => {
+    firestore.collection(`leagues/${id}/players`).orderBy('avgFantasyPoints').onSnapshot((snapshot) => {
+      let temp = []
+      snapshot.forEach((item) => {
+        temp.push({ id: item.id, ...item.data() })
+      })
+      temp.reverse()
+      setDraftedPlayers(temp)
+    })
+  }
+
   const getDraftOrder = async () => {
-    firestore.collection('leagues').doc(id).get().then((snapshot) => {
+    firestore.collection('leagues').doc(id).onSnapshot((snapshot) => {
       setDraftOrder(snapshot.data().draftOrder)
     })
   }
@@ -58,6 +77,8 @@ export const DraftProvider = (({ children }) => {
     getTeams()
     getPlayers()
     getDraftOrder()
+    getDraftedPlayers()
+    getLastDrafted()
   }, [])
 
   return <DraftContext.Provider
@@ -72,6 +93,10 @@ export const DraftProvider = (({ children }) => {
       setPlayers,
       draftOrder,
       setDraftOrder,
+      draftedPlayers,
+      setDraftedPlayers,
+      lastDrafted,
+      setLastDrafted
     }}
   >
     {children}

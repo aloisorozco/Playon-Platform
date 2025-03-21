@@ -16,6 +16,7 @@ import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
+import Snackbar from '@mui/material/Snackbar';
 
 import AuthContext from '../../context/AuthContext'
 import DraftContext from '../../context/DraftContext'
@@ -27,10 +28,33 @@ const siblings = n => [...n.parentElement.children].filter(c => c !== n)
 function Draft() {
 
   const { firestore } = useContext(AuthContext)
+  const { teams, draftedPlayers, lastDrafted } = useContext(DraftContext)
 
   const [tab, setTab] = useState('draftOrder')
+  const [openSnackbar, setOpenSnackbar] = useState(false)
+  const [draftedPlayerName, setDraftedPlayerName] = useState(false)
 
   //const {id} = useParams()
+
+  const findTeam = (teamId) => {
+    return teams.find((team) => team.id === teamId)
+  }
+
+  useEffect(() => {
+    if (lastDrafted == null) {
+      return;
+    }
+
+    const temp = draftedPlayers.find((draftedPlayer) => {
+      return draftedPlayer.id === lastDrafted.player;
+    })?.name
+
+    if (temp == null) {
+      return;
+    }
+    setDraftedPlayerName(temp)
+    setOpenSnackbar(true)
+  }, [lastDrafted])
 
   const onTabClick = (e) => {
     e.target.classList = activeTab
@@ -38,36 +62,43 @@ function Draft() {
       s.classList = disabledTab
     })
     setTab(e.currentTarget.id)
-
   }
 
   return (
-    <div className='grid place-items-center'>
-      <div className='card w-[60vw] bg-base 100 shadow-xl'>
-        {/* {<div className='card-title p-2 justify-center'>
+    <>
+      <div className='grid place-items-center'>
+        <div className='card w-[60vw] max-w-[800px] bg-base 100 shadow-xl'>
+          {/* {<div className='card-title p-2 justify-center'>
           Draft
         </div>} */}
-        <div className='card-body p-2 justify-center'>
+          <div className='card-body p-2 justify-center'>
 
-          <div className='text-left pl-4'>
-            {(tab === 'players') && <Players />}
-            {(tab === 'draftOrder') && <DraftOrder />}
-            {(tab === 'teams') && <Teams />}
-          </div>
+            <div className='text-left pl-4'>
+              {(tab === 'players') && <Players />}
+              {(tab === 'draftOrder') && <DraftOrder />}
+              {(tab === 'teams') && <Teams />}
+            </div>
 
-          <div className="tabs justify-center">
-            <p className={disabledTab} id='players' onClick={onTabClick}>Players</p>
-            <p className={activeTab} id='draftOrder' onClick={onTabClick}>Draft</p>
-            <p className={disabledTab} id='teams' onClick={onTabClick}>Teams</p>
+            <div className="tabs justify-center">
+              <p className={disabledTab} id='players' onClick={onTabClick}>Players</p>
+              <p className={activeTab} id='draftOrder' onClick={onTabClick}>Draft</p>
+              <p className={disabledTab} id='teams' onClick={onTabClick}>Teams</p>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={5000}
+        onClose={() => setOpenSnackbar(false)}
+        message={`${draftedPlayerName} was drafted ${findTeam(lastDrafted?.team)?.name}`}
+      />
+    </>
+
   )
 }
 
 function Players() {
-
   const { auth, firestore } = useContext(AuthContext)
   const { players, teams, curTeamToDraft, id } = useContext(DraftContext)
 
@@ -93,7 +124,6 @@ function Players() {
   }
 
   const draftPlayer = async () => {
-
     const userTeam = teams.find((team) => {
       return team.managerId === user.uid
     })
@@ -102,10 +132,16 @@ function Players() {
       teamId: userTeam.id
     }).then((ref) => {
       firestore.collection('leagues').doc(id).get().then((snapshot) => {
-        let draftPlaceInc = snapshot.data().draftPlace + 1
+        let draftPlace = snapshot.data().draftPlace
+        let draftOrder = snapshot.data().draftOrder
+        draftOrder.splice(draftPlace, 1, {
+          "team": draftOrder[draftPlace].team,
+          "player": playerToDraft[0].id
+        })
 
         firestore.collection('leagues').doc(id).update({
-          draftPlace: draftPlaceInc
+          draftPlace: draftPlace + 1,
+          draftOrder: draftOrder
         })
       })
     }).catch((e) => {
@@ -131,7 +167,7 @@ function Players() {
   return (
     <div>
       <div className='card-title p-2 justify-center text-2xl mb-4'>Available Players</div>
-      <div className='flex flex-col space-y-4 mx-2 overflow-scroll h-80'>
+      <div className='flex flex-col space-y-4 mx-2 overflow-y-scroll h-[60vh]'>
         <div className='hover'>
           <div>
             <form>
@@ -140,7 +176,6 @@ function Players() {
                 <input type='text' id='position' key='position' value="Position" className='w-[10ch] focus:outline-none' readOnly />
                 <input type='text' id='name' key='name' value='Name' className={`w-[20ch] focus:outline-none`} readOnly />
                 <input type='text' id='avgFantasyPoints' key='avgFantasyPoints' value="Average Fantasy Points" className={`w-[25ch] focus:outline-none`} readOnly />
-
               </div>
             </form>
           </div>
@@ -259,21 +294,28 @@ function PlayerPopup({ player, canDraft, handleDraft, setOpen, open }) {
 function DraftOrder() {
 
   const { firestore } = useContext(AuthContext)
-  const { id, teams, draftOrder } = useContext(DraftContext)
+  const { id, teams, draftOrder, draftedPlayers } = useContext(DraftContext)
 
-  const findTeam = (teams, teamId) => {
+  const findTeam = (teamId) => {
     return teams.find((team) => {
       return team.id === teamId;
+    })
+  }
+
+  const findDraftedPlayer = (draftedPlayerId) => {
+    return draftedPlayers.find((draftedPlayer) => {
+      return draftedPlayer.id === draftedPlayerId;
     })
   }
 
   return (
     <div>
       <div className='card-title p-2 justify-center text-2xl mb-4'>Draft Order</div>
-      <div className='flex flex-col space-y-4 mx-2 overflow-scroll h-80'>
-        {draftOrder?.map((draftOrderTeamId, index) => (
+      <div className='flex flex-col space-y-4 mx-2 overflow-y-scroll h-[60vh]'>
+        {draftOrder?.map((draftOrderValue, index) => (
           <DraftOrderItem draftOrderItem={{
-            name: findTeam(teams, draftOrderTeamId).name,
+            name: findTeam(draftOrderValue.team).name,
+            player: findDraftedPlayer(draftOrderValue.player)?.name,
             index: ++index, //make sure it works
           }} key={index++} />
         ))}
@@ -283,7 +325,6 @@ function DraftOrder() {
 }
 
 function DraftOrderItem({ draftOrderItem }) {
-
   const { teams } = useContext(DraftContext)
 
   const handleNothing = (e) => {
@@ -299,7 +340,7 @@ function DraftOrderItem({ draftOrderItem }) {
           }
           <div className='flex flex-row space-x-4 justify-center'>
             <input type='text' id='position' key='position' value={draftOrderItem.index} className='w-[2ch] focus:outline-none' readOnly />
-            <input type='text' id='name' key='name' value={draftOrderItem.name} className={`w-[30ch] focus:outline-none`} readOnly />
+            <input type='text' id='name' key='name' value={draftOrderItem.player ? `${draftOrderItem.name} (${draftOrderItem.player})` : draftOrderItem.name} className={`w-[30ch] focus:outline-none`} readOnly />
           </div>
         </form>
       </div>
@@ -354,7 +395,19 @@ function Teams() {
           </select>
         </div>
       </div>
-      <div className='flex flex-col space-y-4 mx-2 overflow-scroll h-80'>
+      <div className='flex flex-col space-y-4 mx-2 overflow-y-scroll h-[60vh]'>
+        <div className='hover'>
+          <div>
+            <form>
+              <div className='flex flex-row space-x-4 justify-center'>
+                <input type='text' id='team' key='team' value="Team" className='w-[6ch] focus:outline-none' readOnly />
+                <input type='text' id='position' key='position' value="Position" className='w-[10ch] focus:outline-none' readOnly />
+                <input type='text' id='name' key='name' value='Name' className={`w-[20ch] focus:outline-none`} readOnly />
+                <input type='text' id='avgFantasyPoints' key='avgFantasyPoints' value="Average Fantasy Points" className={`w-[25ch] focus:outline-none`} readOnly />
+              </div>
+            </form>
+          </div>
+        </div>
         {teamPlayers?.map((player) => (
           <TeamPlayerItem player={player} key={player.id} />
         ))}
@@ -374,9 +427,10 @@ function TeamPlayerItem({ player }) {
       <div>
         <form onSubmit={handleNothing}>
           <div className='flex flex-row space-x-4 justify-center'>
-            <input type='text' id='position' key='position' value={player.position} className='w-[2ch] focus:outline-none' readOnly />
-            <input type='text' id='name' key='name' value={player.name} className={`w-[${player.name.length}ch] focus:outline-none`} readOnly />
-            <input type='text' id='avgFantasyPoints' key='avgFantasyPoints' value={player.avgFantasyPoints.toFixed(1)} className={`w-[5ch] focus:outline-none`} readOnly />
+            <input type='text' id='team' key='team' value={player.team} className='w-[8ch] focus:outline-none bold' readOnly />
+            <input type='text' id='position' key='position' value={player.position} className='w-[5ch] focus:outline-none' readOnly />
+            <input type='text' id='name' key='name' value={player.name} className={`w-[30ch] focus:outline-none`} readOnly />
+            <input type='text' id='avgFantasyPoints' key='avgFantasyPoints' value={player.avgFantasyPoints.toFixed(1)} className={`w-[15ch] focus:outline-none`} readOnly />
           </div>
         </form>
       </div>
