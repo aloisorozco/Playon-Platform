@@ -22,6 +22,28 @@ update_time, league_ref = db.collection("leagues").add({"managerId": "vGKvxz77lf
 print(league_ref.id)
 
 for tr in trs:
-    p = Player(tr.find("td", {"data-stat" : "name_display"}).string, tr.find("td", {"data-stat" : "pos"}).string, tr.find("td", {"data-stat" : "team_name_abbr"}).string,tr.find("td", {"data-stat" : "pts_per_g"}).string, tr.find("td", {"data-stat" : "trb_per_g"}).string, tr.find("td", {"data-stat" : "ast_per_g"}).string, tr.find("td", {"data-stat" : "blk_per_g"}).string, tr.find("td", {"data-stat" : "stl_per_g"}).string, tr.find("td", {"data-stat" : "tov_per_g"}).string)
-    print(p.__dict__)
-    db.collection(f"leagues/{league_ref.id}/players").add(p.__dict__)
+    if tr.has_attr('class') and tr['class'][0] == 'partial_table':
+        counter += 1
+        if num_of_teams == counter and num_of_teams != 0:
+            p.team = tr.find("td", {"data-stat" : "team_name_abbr"}).string
+            num_of_teams = 0
+            print(p.__dict__)
+            db.collection(f"leagues/{league_ref.id}/players").add(p.__dict__)
+        continue
+    
+    try:
+        p = Player(tr.find("td", {"data-stat" : "name_display"}).string, tr.find("td", {"data-stat" : "pos"}).string, tr.find("td", {"data-stat" : "team_name_abbr"}).string, tr.find("td", {"data-stat" : "pts_per_g"}).string, tr.find("td", {"data-stat" : "trb_per_g"}).string, tr.find("td", {"data-stat" : "ast_per_g"}).string, tr.find("td", {"data-stat" : "blk_per_g"}).string, tr.find("td", {"data-stat" : "stl_per_g"}).string, tr.find("td", {"data-stat" : "tov_per_g"}).string)
+        # removing players under 10 fantasy points (no one will draft them)
+        if p.avgFantasyPoints < 10:
+            continue
+        
+        if 'TM' in p.team:
+            num_of_teams = int(p.team[0])
+            counter = 0
+            continue
+
+        num_of_teams = 0
+        print(p.__dict__)
+        db.collection(f"leagues/{league_ref.id}/players").add(p.__dict__)
+    except:
+        continue
