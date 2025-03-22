@@ -244,7 +244,7 @@ function PlayerPopup({ player, canDraft, handleDraft, setOpen, open }) {
       aria-describedby="alert-dialog-description"
     >
       <DialogTitle id="alert-dialog-title">
-        {`${player.name}'s Regular Season Average Stats`}
+        {`${player.name}'s Regular Season Averages`}
       </DialogTitle>
       <DialogContent>
         <TableContainer>
@@ -276,8 +276,8 @@ function PlayerPopup({ player, canDraft, handleDraft, setOpen, open }) {
         </TableContainer>
       </DialogContent>
       <DialogActions>
-        <Button onClick={() => setOpen(false)}>Close</Button>
-        <Button onClick={() => {
+        <Button variant='contained' onClick={() => setOpen(false)}>Close</Button>
+        <Button variant='contained' onClick={() => {
           setOpen(false)
           if (!canDraft) {
             return;
