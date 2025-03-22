@@ -8,46 +8,23 @@ import { useAuthState } from 'react-firebase-hooks/auth'
 import { Button } from '@mui/material';
 
 import AuthContext from '../../context/AuthContext'
+import FirestoreContext, { FirestoreProvider } from '../../context/FirestoreContext';
+
+function LeagueOuter() {
+  return (
+    <FirestoreProvider>
+      <League />
+    </FirestoreProvider>
+  )
+}
 
 function League() {
 
-  const [teams, setTeams] = useState([])
-  const [league, setLeague] = useState({})
-  const [leagueLoading, setLeagueLoading] = useState(true)
-  const { id } = useParams()
+  const { league, teams } = useContext(FirestoreContext)
 
   const { auth, firestore } = useContext(AuthContext)
   const [user, loading] = useAuthState(auth)
   const navigate = useNavigate()
-
-
-  const fetchTeams = async () => {
-
-    firestore.collection(`leagues/${id}/teams`).onSnapshot((snapshot) => {
-
-      let temp = []
-      snapshot.forEach((item) => {
-        temp.push({ id: item.id, ...item.data() })
-      })
-      setTeams(temp)
-    })
-  }
-
-  const getLeague = async () => {
-    firestore.collection('leagues').doc(id).get().then((snapshot) => {
-      if (snapshot.data()) {
-        setLeague(snapshot.data())
-        setLeagueLoading(false)
-      }
-    }).catch((e) => {
-
-    })
-  }
-
-  useEffect(() => {
-    fetchTeams()
-    getLeague()
-  }, [])
 
   return (
     <div className='grid place-items-center'>
@@ -55,7 +32,7 @@ function League() {
         <table className="table text-lg w-full text-left">
           {/* head */}
           <thead>
-            {(leagueLoading) ? <></> : <tr>
+            <tr>
               <th className='text-lg flex flex-row justify-center'>
                 {league?.name}
                 {(user.uid == league?.managerId) &&
@@ -67,7 +44,6 @@ function League() {
                 }
               </th>
             </tr>
-            }
           </thead>
           <tbody className='flex flex-col'>
             {league?.draftOrder &&
@@ -96,4 +72,4 @@ function TeamItem({ team, index }) {
   )
 }
 
-export default League
+export default LeagueOuter

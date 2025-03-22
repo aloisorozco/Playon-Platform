@@ -6,19 +6,30 @@ import { useAuthState } from 'react-firebase-hooks/auth'
 
 import AuthContext from './AuthContext'
 
-const DraftContext = createContext()
+const FirestoreContext = createContext()
 
-export const DraftProvider = (({ children }) => {
+export const FirestoreProvider = (({ children }) => {
 
   const { firestore } = useContext(AuthContext)
   const [curTeamToDraft, setCurTeamToDraft] = useState()
   const [lastDrafted, setLastDrafted] = useState()
+  const [league, setLeague] = useState({})
   const [teams, setTeams] = useState([])
   const [players, setPlayers] = useState([])
   const [draftedPlayers, setDraftedPlayers] = useState([])
   const [draftOrder, setDraftOrder] = useState([])
 
   const { id } = useParams()
+
+  const getLeague = async () => {
+    firestore.collection('leagues').doc(id).get().then((snapshot) => {
+      if (snapshot.data()) {
+        setLeague(snapshot.data())
+      }
+    }).catch((e) => {
+
+    })
+  }
 
   const getTeams = () => {
     firestore.collection(`leagues/${id}/teams`).onSnapshot((snapshot) => {
@@ -74,6 +85,7 @@ export const DraftProvider = (({ children }) => {
 
   useEffect(() => {
     getCurTeamToDraft()
+    getLeague()
     getTeams()
     getPlayers()
     getDraftOrder()
@@ -81,7 +93,7 @@ export const DraftProvider = (({ children }) => {
     getLastDrafted()
   }, [])
 
-  return <DraftContext.Provider
+  return <FirestoreContext.Provider
     value={{
       curTeamToDraft,
       setCurTeamToDraft,
@@ -96,11 +108,13 @@ export const DraftProvider = (({ children }) => {
       draftedPlayers,
       setDraftedPlayers,
       lastDrafted,
-      setLastDrafted
+      setLastDrafted,
+      league,
+      setLeague
     }}
   >
     {children}
-  </DraftContext.Provider>
+  </FirestoreContext.Provider>
 })
 
-export default DraftContext
+export default FirestoreContext

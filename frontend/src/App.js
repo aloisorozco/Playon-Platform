@@ -17,7 +17,8 @@ import EditTeam from './pages/other/EditTeam';
 import ProtectedEditTeam from './util/ProtectedEditTeam';
 import EditLeague from './pages/other/EditLeague';
 import ProtectedEditLeague from './util/ProtectedEditLeague';
-import DraftOuter from './util/DraftOuter';
+import { FirestoreProvider } from './context/FirestoreContext';
+import Draft from './pages/main/Draft';
 
 /**
  * TODO
@@ -32,7 +33,6 @@ function App() {
   return (
 
     <AuthProvider>
-
       <BrowserRouter>
 
         <Navbar />
@@ -49,8 +49,8 @@ function App() {
             <Route path='/league/:id' element={<League />} />
           </Route>
 
-          <Route path='league/:leagueId/team/:teamId' element={<Protected />}>
-            <Route path='/league/:leagueId/team/:teamId' element={<Team />} />
+          <Route path='league/:id/team/:teamId' element={<Protected />}>
+            <Route path='/league/:id/team/:teamId' element={<Team />} />
           </Route>
 
           <Route path='/joinLeague' element={<Protected />}>
@@ -66,12 +66,11 @@ function App() {
           </Route>
 
           <Route path='/league/:id/draft' element={<Protected />}>
-            <Route path='/league/:id/draft' element={<DraftOuter />} />
+            <Route path='/league/:id/draft' element={<Draft />} />
           </Route>
 
         </Routes>
       </BrowserRouter>
-
     </AuthProvider>
   );
 }

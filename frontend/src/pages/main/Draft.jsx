@@ -19,16 +19,25 @@ import TableRow from '@mui/material/TableRow';
 import Snackbar from '@mui/material/Snackbar';
 
 import AuthContext from '../../context/AuthContext'
-import DraftContext from '../../context/DraftContext'
+import FirestoreContext from '../../context/FirestoreContext'
+import { FirestoreProvider } from '../../context/FirestoreContext';
 
 const activeTab = 'tab tab-lg tab-lifted tab-active'
 const disabledTab = 'tab tab-lg tab-lifted'
 const siblings = n => [...n.parentElement.children].filter(c => c !== n)
 
+function DraftOuter() {
+  return (
+    <FirestoreProvider>
+      <Draft />
+    </FirestoreProvider>
+  )
+}
+
 function Draft() {
 
   const { firestore } = useContext(AuthContext)
-  const { teams, draftedPlayers, lastDrafted } = useContext(DraftContext)
+  const { teams, draftedPlayers, lastDrafted } = useContext(FirestoreContext)
 
   const [tab, setTab] = useState('draftOrder')
   const [openSnackbar, setOpenSnackbar] = useState(false)
@@ -66,6 +75,7 @@ function Draft() {
 
   return (
     <>
+
       <div className='grid place-items-center'>
         <div className='card w-[60vw] max-w-[800px] bg-base 100 shadow-xl'>
           {/* {<div className='card-title p-2 justify-center'>
@@ -100,7 +110,7 @@ function Draft() {
 
 function Players() {
   const { auth, firestore } = useContext(AuthContext)
-  const { players, teams, curTeamToDraft, id } = useContext(DraftContext)
+  const { players, teams, curTeamToDraft, id } = useContext(FirestoreContext)
 
   const [user, loading] = useAuthState(auth)
 
@@ -191,7 +201,7 @@ function Players() {
 function PlayerItem({ player, canDraft, getPlayerId }) {
 
   const { auth, firestore } = useContext(AuthContext)
-  const { id, curTeamToDraft, teams } = useContext(DraftContext)
+  const { id, curTeamToDraft, teams } = useContext(FirestoreContext)
 
   const [user, loading] = useAuthState(auth)
 
@@ -294,7 +304,7 @@ function PlayerPopup({ player, canDraft, handleDraft, setOpen, open }) {
 function DraftOrder() {
 
   const { firestore } = useContext(AuthContext)
-  const { id, teams, draftOrder, draftedPlayers } = useContext(DraftContext)
+  const { id, teams, draftOrder, draftedPlayers } = useContext(FirestoreContext)
 
   const findTeam = (teamId) => {
     return teams.find((team) => {
@@ -325,7 +335,7 @@ function DraftOrder() {
 }
 
 function DraftOrderItem({ draftOrderItem }) {
-  const { teams } = useContext(DraftContext)
+  const { teams } = useContext(FirestoreContext)
 
   const handleNothing = (e) => {
     e.target.preventDefault()
@@ -350,7 +360,7 @@ function DraftOrderItem({ draftOrderItem }) {
 
 function Teams() {
 
-  const { id, teams, players } = useContext(DraftContext)
+  const { id, teams, players } = useContext(FirestoreContext)
   const { firestore } = useContext(AuthContext)
 
   const selectRef = useRef(null)
@@ -438,4 +448,4 @@ function TeamPlayerItem({ player }) {
   )
 }
 
-export default Draft
+export default DraftOuter
