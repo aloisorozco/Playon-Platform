@@ -18,6 +18,7 @@ main_table = div.find(["tbody"])
 trs = main_table.find_all(["tr"])
 
 db = firestore.client()
+# creates new league with me as default manager
 update_time, league_ref = db.collection("leagues").add({"managerId": "vGKvxz77lfRbONIVjHsI32kDk7E3", "name": "YMCA"})
 print(league_ref.id)
 

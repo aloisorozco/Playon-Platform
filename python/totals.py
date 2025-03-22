@@ -1,29 +1,38 @@
 from bs4 import BeautifulSoup
 import requests
-import mysql.connector
+
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import firestore
+from google.cloud.firestore_v1.base_query import FieldFilter
 
 from totalPlayer import Player
 
+cred = credentials.Certificate("credentials.json")
+firebase_admin.initialize_app(cred)
+db = firestore.client()
 
-#WILL HAVE TO BE SCHEDULED FOR EVERY MORNING
-url = "https://www.basketball-reference.com/playoffs/NBA_2022_totals.html"#playoff totals page instead
+#TODO: WILL HAVE TO BE SCHEDULED FOR EVERY MORNING
+url = "https://www.basketball-reference.com/playoffs/NBA_2024_totals.html" # playoff totals page instead
 
-result = requests.get(url)
-doc = BeautifulSoup(result.text, "html.parser")
+leagues = list(db.collection("leagues").stream())
+for league in leagues:
 
-trs = doc.find_all(["tr"], class_="full_table")
+    result = requests.get(url)
+    doc = BeautifulSoup(result.text, "html.parser")
 
-db = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="",
-    database="playondb"
-)
+    trs = doc.find_all(["tr"], class_="full_table")
+    for tr in trs:
+        p = Player(tr.find("td", {"data-stat" : "player"}).string, tr.find("td", {"data-stat" : "pos"}).string, tr.find("td", {"data-stat" : "team_id"}).string,tr.find("td", {"data-stat" : "pts"}).string, tr.find("td", {"data-stat" : "trb"}).string, tr.find("td", {"data-stat" : "ast"}).string, tr.find("td", {"data-stat" : "blk"}).string, tr.find("td", {"data-stat" : "stl"}).string, tr.find("td", {"data-stat" : "tov"}).string)
+        print(p.__dict__)
 
-cursor = db.cursor()
+        player_in_db = (
+        db.collection(f"leagues/{league.id}/players")
+            .where(filter=FieldFilter("name", "==", p.name))
+            .stream()
+        )
 
-for tr in trs:
-
-    p = Player(tr.find("td", {"data-stat" : "player"}).string, tr.find("td", {"data-stat" : "pos"}).string, tr.find("td", {"data-stat" : "team_id"}).string,tr.find("td", {"data-stat" : "pts"}).string, tr.find("td", {"data-stat" : "trb"}).string, tr.find("td", {"data-stat" : "ast"}).string, tr.find("td", {"data-stat" : "blk"}).string, tr.find("td", {"data-stat" : "stl"}).string, tr.find("td", {"data-stat" : "tov"}).string)
-    cursor.execute("UPDATE players SET total_points = %s, total_rebounds = %s, total_assists = %s, total_blocks = %s, total_steals = %s, total_turnovers = %s, f_points = %s WHERE name = %s", (str(p.total_points), str(p.total_rebounds), str(p.total_assists), str(p.total_blocks), str(p.total_steals), str(p.total_turnovers), str(p.f_points), str(p.name)))
-    db.commit()
+        for player in player_in_db:
+            print(f"{player.id} => {player.to_dict()}")
+            league_ref = db.collection(f"leagues/{league.id}/players").document(player.id)
+            league_ref.update({'pointsAccumulated': p.points_accumulated})
