@@ -38,7 +38,7 @@ function DraftOuter() {
 function Draft() {
 
   const { firestore } = useContext(AuthContext)
-  const { teams, draftedPlayers, lastDrafted } = useContext(FirestoreContext)
+  const { teams, draftedPlayers, lastDrafted, curTeamToDraft } = useContext(FirestoreContext)
 
   const [tab, setTab] = useState('draftOrder')
   const [openSnackbar, setOpenSnackbar] = useState(false)
@@ -105,6 +105,14 @@ function Draft() {
       >
         <Alert severity="success">
           {`${draftedPlayerName} was drafted ${findTeam(lastDrafted?.team)?.name}`}
+        </Alert>
+      </Snackbar>
+      <Snackbar
+        open={true}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert severity="info">
+          {`Currently drafting: ${findTeam(curTeamToDraft)?.name}`}
         </Alert>
       </Snackbar>
     </>

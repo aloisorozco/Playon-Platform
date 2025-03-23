@@ -97,7 +97,6 @@ export const FirestoreProvider = (({ children }) => {
     value={{
       curTeamToDraft,
       setCurTeamToDraft,
-      getCurTeamToDraft,
       id,
       teams,
       setTeams,
