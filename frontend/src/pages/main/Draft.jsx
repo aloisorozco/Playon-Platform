@@ -117,7 +117,6 @@ function Players() {
   const [playerName, setPlayerName] = useState()
 
   const draftPlayer = async () => {
-    console.log(playerName)
     let player = null
     await firestore.collection('leagues').doc(id).collection('players').where('name', '==', playerName).get().then((snapshot) => {
       if (snapshot.empty) {
