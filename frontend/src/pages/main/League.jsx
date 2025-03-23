@@ -48,7 +48,7 @@ function League() {
           <tbody className='flex flex-col'>
             {league?.draftOrder &&
               <div className='flex flex-col items-center'>
-                <Button variant='contained' sx={{ margin: '5px' }} onClick={() => navigate('draft')}>Enter Draft</Button>
+                <button className='btn btn-md m-2' onClick={() => navigate('draft')}>Enter Draft Room</button>
               </div>
             }
             {teams.map((team, index) => (

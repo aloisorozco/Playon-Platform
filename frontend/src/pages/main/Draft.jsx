@@ -21,6 +21,7 @@ import Snackbar from '@mui/material/Snackbar';
 import AuthContext from '../../context/AuthContext'
 import FirestoreContext from '../../context/FirestoreContext'
 import { FirestoreProvider } from '../../context/FirestoreContext';
+import { Alert } from '@mui/material';
 
 const activeTab = 'tab tab-lg tab-lifted tab-active'
 const disabledTab = 'tab tab-lg tab-lifted'
@@ -101,8 +102,11 @@ function Draft() {
         open={openSnackbar}
         autoHideDuration={5000}
         onClose={() => setOpenSnackbar(false)}
-        message={`${draftedPlayerName} was drafted ${findTeam(lastDrafted?.team)?.name}`}
-      />
+      >
+        <Alert severity="success">
+          {`${draftedPlayerName} was drafted ${findTeam(lastDrafted?.team)?.name}`}
+        </Alert>
+      </Snackbar>
     </>
 
   )
@@ -222,7 +226,7 @@ function PlayerItem({ player, canDraft, getPlayerId }) {
               <div className='hover:scale-105' onClick={() => setOpen(true)}>
                 <input type='text' id='team' key='team' value={player.team} className='w-[8ch] focus:outline-none bold' readOnly />
                 <input type='text' id='position' key='position' value={player.position} className='w-[5ch] focus:outline-none' readOnly />
-                <input type='text' id='name' key='name' value={player.name} className={`w-[30ch] focus:outline-none hover:scale-105`} readOnly />
+                <input type='text' id='name' key='name' value={player.name} className={`w-[30ch] focus:outline-none cursor-pointer`} readOnly />
                 <input type='text' id='avgFantasyPoints' key='avgFantasyPoints' value={player.avgFantasyPoints.toFixed(1)} className={`w-[5ch] focus:outline-none`} readOnly />
               </div>
               {(/*todo*/ canDraft) ?
@@ -286,8 +290,8 @@ function PlayerPopup({ player, canDraft, handleDraft, setOpen, open }) {
         </TableContainer>
       </DialogContent>
       <DialogActions>
-        <Button variant='contained' onClick={() => setOpen(false)}>Close</Button>
-        <Button variant='contained' onClick={() => {
+        <button className='btn btn-sm' onClick={() => setOpen(false)}>Close</button>
+        <button className='btn btn-sm' onClick={() => {
           setOpen(false)
           if (!canDraft) {
             return;
@@ -295,7 +299,7 @@ function PlayerPopup({ player, canDraft, handleDraft, setOpen, open }) {
           handleDraft()
         }} autoFocus disabled={!canDraft}>
           Draft
-        </Button>
+        </button>
       </DialogActions>
     </Dialog >
   );
