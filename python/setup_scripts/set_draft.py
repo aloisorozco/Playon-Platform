@@ -1,3 +1,5 @@
+# takes a leagueId in command line to set it to an empty draft
+
 import sys
 import random
 

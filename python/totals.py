@@ -1,3 +1,5 @@
+# goes through all leagues and updates the points accumulated
+
 from bs4 import BeautifulSoup
 import requests
 
