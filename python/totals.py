@@ -15,6 +15,7 @@ firebase_admin.initialize_app(cred)
 db = firestore.client()
 
 #TODO: WILL HAVE TO BE SCHEDULED FOR EVERY MORNING
+#TODO: change to 2025
 url = "https://www.basketball-reference.com/playoffs/NBA_2024_totals.html" # playoff totals page instead
 
 leagues = list(db.collection("leagues").stream())
