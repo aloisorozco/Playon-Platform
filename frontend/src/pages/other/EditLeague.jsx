@@ -7,7 +7,7 @@ import 'firebase/compat/firestore'
 import AuthContext from '../../context/AuthContext'
 
 function EditLeague() {
-  const {firestore} = useContext(AuthContext)
+  const { firestore } = useContext(AuthContext)
 
   const [leagueNameLoading, setLeagueNameLoading] = useState(true)
   const [leagueName, setLeagueName] = useState()
@@ -15,7 +15,7 @@ function EditLeague() {
 
   const navigate = useNavigate()
 
-  const {id} = useParams()
+  const { id } = useParams()
 
   useEffect(() => {
     if (error) {
@@ -41,7 +41,7 @@ function EditLeague() {
   }, [])
 
   const updateLeague = async () => {
-    
+
     firestore.collection('leagues').doc(id).update({
       name: leagueName
     }).then((ref) => {
@@ -67,12 +67,12 @@ function EditLeague() {
       <div className="card w-60 bg-base-100 shadow-xl">
         <div className="card-body items-center text-center">
           <h2 className="card-title mb-2">Edit league</h2>
-        
+
           <form onSubmit={handleSubmit}>
             <div className="form-control space-y-4">
-              {(!leagueNameLoading) && 
+              {(!leagueNameLoading) &&
                 <>
-                  <input type='text' placeholder={leagueName} className="input w-full text-center max-w-xs" id='leagueName' key='leagueName' onChange={handleLeagueNameChange}/>
+                  <input type='text' value={leagueName} className="input w-full text-center max-w-xs" id='leagueName' key='leagueName' onChange={handleLeagueNameChange} />
                   <button type='submit' className='btn btn-ghost'>
                     Submit
                   </button>

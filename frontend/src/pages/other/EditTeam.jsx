@@ -8,7 +8,7 @@ import AuthContext from '../../context/AuthContext'
 
 function EditTeam() {
 
-  const {firestore} = useContext(AuthContext)
+  const { firestore } = useContext(AuthContext)
 
   const [teamNameLoading, setTeamNameLoading] = useState(true)
   const [teamName, setTeamName] = useState()
@@ -16,7 +16,7 @@ function EditTeam() {
 
   const navigate = useNavigate()
 
-  const {leagueId, teamId} = useParams()
+  const { leagueId, teamId } = useParams()
 
   useEffect(() => {
     if (error) {
@@ -42,7 +42,7 @@ function EditTeam() {
   }, [])
 
   const updateTeam = async () => {
-    
+
     firestore.collection('leagues').doc(leagueId).collection('teams').doc(teamId).update({
       name: teamName
     }).then((ref) => {
@@ -68,12 +68,12 @@ function EditTeam() {
       <div className="card w-60 bg-base-100 shadow-xl">
         <div className="card-body items-center text-center">
           <h2 className="card-title mb-2">Edit Team</h2>
-        
+
           <form onSubmit={handleSubmit}>
             <div className="form-control space-y-4">
-              {(!teamNameLoading) && 
+              {(!teamNameLoading) &&
                 <>
-                  <input type='text' placeholder={teamName} className="input w-full text-center max-w-xs" id='teamName' key='teamName' onChange={handleTeamNameChange}/>
+                  <input type='text' value={teamName} className="input w-full text-center max-w-xs" id='teamName' key='teamName' onChange={handleTeamNameChange} />
                   <button type='submit' className='btn btn-ghost'>
                     Submit
                   </button>
