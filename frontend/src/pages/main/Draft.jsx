@@ -64,7 +64,6 @@ function Draft() {
 
   return (
     <>
-
       <div className='grid place-items-center'>
         <div className='card w-[60vw] max-w-[800px] bg-base 100 shadow-xl'>
           {/* {<div className='card-title p-2 justify-center'>
@@ -115,64 +114,92 @@ function Players() {
   const [user, loading] = useAuthState(auth)
 
   const [canDraft, setCanDraft] = useState()
-  const [playerToDraft, setPlayerToDraft] = useState()
+  const [playerName, setPlayerName] = useState()
 
-  const getPlayerId = async (draftedPlayer) => {
-    firestore.collection('leagues').doc(id).collection('players').where('name', '==', draftedPlayer.name).get().then((snapshot) => {
+  const draftPlayer = async () => {
+    console.log(playerName)
+    let player = null
+    await firestore.collection('leagues').doc(id).collection('players').where('name', '==', playerName).get().then((snapshot) => {
       if (snapshot.empty) {
-        setPlayerToDraft([])
+        return
       }
       else {
-        let temp = []
         snapshot.forEach((item) => {
-          temp.push({ id: item.id, ...item.data() })
+          player = { id: item.id, ...item.data() }
         })
-        setPlayerToDraft(temp)
       }
     })
 
-  }
-
-  const draftPlayer = async () => {
     const userTeam = teams.find((team) => {
       return team.managerId === user.uid
     })
 
-    firestore.collection('leagues').doc(id).collection('players').doc(playerToDraft[0].id).update({
-      teamId: userTeam.id
-    }).then((ref) => {
-      firestore.collection('leagues').doc(id).get().then((snapshot) => {
-        let draftPlace = snapshot.data().draftPlace
-        let draftOrder = snapshot.data().draftOrder
-        draftOrder.splice(draftPlace, 1, {
-          "team": draftOrder[draftPlace].team,
-          "player": playerToDraft[0].id
-        })
+    firestore.collection('leagues').doc(id).get().then(async (snapshot) => {
+      let draftPlace = snapshot.data().draftPlace
+      let draftOrder = snapshot.data().draftOrder
 
-        firestore.collection('leagues').doc(id).update({
-          draftPlace: draftPlace + 1,
-          draftOrder: draftOrder
-        })
+      if (draftOrder[draftPlace].team !== userTeam.id || player == null) {
+        return
+      }
+
+      draftOrder.splice(draftPlace, 1, {
+        "team": draftOrder[draftPlace].team,
+        "player": player.id
       })
-    }).catch((e) => {
-      console.log(e)
+
+      await firestore.collection('leagues').doc(id).update({
+        draftPlace: draftPlace + 1,
+        draftOrder: draftOrder
+      })
+
+      await firestore.collection(`leagues/${id}/players`).doc(player.id).update({
+        teamId: userTeam.id
+      })
     })
   }
 
-  useEffect(() => {
-    if (playerToDraft != null && playerToDraft.length !== 0) {
-      draftPlayer()
-    }
-  }, [playerToDraft])
+  /*const draftPlayer = async () => {
+    const userTeam = teams.find((team) => {
+      return team.managerId === user.uid
+    })
+
+    firestore.collection('leagues').doc(id).get().then((snapshot) => {
+      let draftPlace = snapshot.data().draftPlace
+      let draftOrder = snapshot.data().draftOrder
+
+      if (draftOrder[draftPlace].team !== userTeam.id) {
+        setPlayerToDraft([])
+        return
+      }
+
+      draftOrder.splice(draftPlace, 1, {
+        "team": draftOrder[draftPlace].team,
+        "player": playerToDraft[0].id
+      })
+
+      firestore.collection('leagues').doc(id).update({
+        draftPlace: draftPlace + 1,
+        draftOrder: draftOrder
+      })
+
+      firestore.collection('leagues').doc(id).collection('players').doc(playerToDraft[0].id).update({
+        teamId: userTeam.id
+      })
+    })
+  }/*/
 
   useEffect(() => {
-    //console.log('reloaded players')
+    if (playerName != null) {
+      draftPlayer()
+    }
+  }, [playerName])
+
+  useEffect(() => {
     const userTeam = teams.find((team) => {
       return team.managerId === user.uid
     })
     setCanDraft(userTeam.id === curTeamToDraft)
   }, [curTeamToDraft])
-  //TODO: maybe we can just change to curTeamToDraft cuz we should be updating when we draft
 
   return (
     <div>
@@ -191,7 +218,7 @@ function Players() {
           </div>
         </div>
         {players.map((player) => (
-          <PlayerItem player={player} key={player.id} canDraft={canDraft} getPlayerId={getPlayerId} playerType={playerItemType.undrafted} />
+          <PlayerItem player={player} key={player.id} canDraft={canDraft} setPlayerName={setPlayerName} playerType={playerItemType.undrafted} />
         ))}
       </div>
     </div>

@@ -85,7 +85,7 @@ function Team() {
             </tr>}
           </thead>
         </table>
-        <div className='flex flex-col space-y-4 mx-2 overflow-y-scroll h-[60vh]'>
+        <div className='flex flex-col space-y-4 mx-2 overflow-y-scroll h-[60vh] mt-5'>
           <div className='hover'>
             <div>
               <form>

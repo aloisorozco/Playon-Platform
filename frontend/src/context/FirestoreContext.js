@@ -22,12 +22,10 @@ export const FirestoreProvider = (({ children }) => {
   const { id } = useParams()
 
   const getLeague = async () => {
-    firestore.collection('leagues').doc(id).get().then((snapshot) => {
+    firestore.collection('leagues').doc(id).onSnapshot((snapshot) => {
       if (snapshot.data()) {
         setLeague(snapshot.data())
       }
-    }).catch((e) => {
-
     })
   }
 

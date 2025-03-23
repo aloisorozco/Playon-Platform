@@ -19,7 +19,6 @@ function LeagueOuter() {
 }
 
 function League() {
-
   const { league, teams } = useContext(FirestoreContext)
 
   const { auth, firestore } = useContext(AuthContext)
@@ -46,7 +45,7 @@ function League() {
             </tr>
           </thead>
           <tbody className='flex flex-col'>
-            {league?.draftOrder &&
+            {league?.draftOrder && league?.draftOrder[league?.draftPlace] &&
               <div className='flex flex-col items-center'>
                 <button className='btn btn-md m-2' onClick={() => navigate('draft')}>Enter Draft Room</button>
               </div>

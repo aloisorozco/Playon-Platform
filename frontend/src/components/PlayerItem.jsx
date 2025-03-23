@@ -6,6 +6,8 @@ import { useAuthState } from 'react-firebase-hooks/auth'
 
 import AuthContext from '../context/AuthContext'
 
+import { debounce } from "lodash"
+
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -25,7 +27,7 @@ export const playerItemType = {
     team: 2
 }
 
-export default function PlayerItem({ player, playerType, canDraft = false, getPlayerId = null }) {
+export default function PlayerItem({ player, playerType, canDraft = false, startDraftPlayer = null, setPlayerName = null }) {
 
     const { auth, firestore } = useContext(AuthContext)
     const { id, curTeamToDraft, teams } = useContext(FirestoreContext)
@@ -34,11 +36,11 @@ export default function PlayerItem({ player, playerType, canDraft = false, getPl
 
     const [open, setOpen] = React.useState(false);
 
-    const handleDraft = () => {
-        getPlayerId({
-            'name': player.name
-        })
-    }
+    const handleDraft = React.useCallback(
+        debounce(() => {
+            setPlayerName(player.name)
+        }, 400)
+        , [])
 
     return (
         <>
