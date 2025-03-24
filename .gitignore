@@ -25,4 +25,5 @@ yarn-error.log*
 package-lock.json
 AuthContext.js
 credentials.json
+/frontend/build
 /python/__pycache__

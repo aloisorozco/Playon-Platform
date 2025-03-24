@@ -157,36 +157,6 @@ function Players() {
     })
   }
 
-  /*const draftPlayer = async () => {
-    const userTeam = teams.find((team) => {
-      return team.managerId === user.uid
-    })
-
-    firestore.collection('leagues').doc(id).get().then((snapshot) => {
-      let draftPlace = snapshot.data().draftPlace
-      let draftOrder = snapshot.data().draftOrder
-
-      if (draftOrder[draftPlace].team !== userTeam.id) {
-        setPlayerToDraft([])
-        return
-      }
-
-      draftOrder.splice(draftPlace, 1, {
-        "team": draftOrder[draftPlace].team,
-        "player": playerToDraft[0].id
-      })
-
-      firestore.collection('leagues').doc(id).update({
-        draftPlace: draftPlace + 1,
-        draftOrder: draftOrder
-      })
-
-      firestore.collection('leagues').doc(id).collection('players').doc(playerToDraft[0].id).update({
-        teamId: userTeam.id
-      })
-    })
-  }/*/
-
   useEffect(() => {
     if (playerName != null) {
       draftPlayer()
