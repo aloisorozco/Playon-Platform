@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext } from "react"
+import React, { createContext, useState, useEffect, useContext, useRef } from "react"
 
 import { useParams } from 'react-router-dom'
 
@@ -9,8 +9,9 @@ import AuthContext from './AuthContext'
 const FirestoreContext = createContext()
 
 export const FirestoreProvider = (({ children }) => {
-
-  const { firestore } = useContext(AuthContext)
+  const ws = useRef(null);
+  const { auth, firestore } = useContext(AuthContext)
+  const [user, loading] = useAuthState(auth)
   const [curTeamToDraft, setCurTeamToDraft] = useState()
   const [lastDrafted, setLastDrafted] = useState()
   const [league, setLeague] = useState({})
@@ -40,17 +41,16 @@ export const FirestoreProvider = (({ children }) => {
     })
   }
 
-  const getLastDrafted = () => {
-    firestore.collection('leagues').doc(id).onSnapshot((snapshot) => {
-      setLastDrafted(snapshot.data().draftOrder[snapshot.data().draftPlace - 1])
-    })
-  }
-
-  const getCurTeamToDraft = () => {
-    firestore.collection('leagues').doc(id).onSnapshot((snapshot) => {
-      //console.log(snapshot.data().draftOrder[snapshot.data().draftPlace])
-      setCurTeamToDraft(snapshot.data().draftOrder[snapshot.data().draftPlace]?.team)
-    })
+  const getDraftInfo = () => {
+    ws.current = new WebSocket(`ws://localhost:8000/draft/${id}/${user.uid}`);
+    ws.current.onopen = () => console.log("onopen");
+    ws.current.onclose = () => console.log("onclose");
+    ws.current.onmessage = e => {
+      const message = JSON.parse(e.data);
+      console.log("onmessage: ", message);
+      setCurTeamToDraft(message.curTeamToDraft)
+      setLastDrafted(message.lastDrafted)
+    };
   }
 
   const getPlayers = async () => {
@@ -82,13 +82,15 @@ export const FirestoreProvider = (({ children }) => {
   }
 
   useEffect(() => {
-    getCurTeamToDraft()
     getLeague()
     getTeams()
     getPlayers()
     getDraftOrder()
     getDraftedPlayers()
-    getLastDrafted()
+    getDraftInfo();
+    return () => {
+      ws.current.close();
+    };
   }, [])
 
   return <FirestoreContext.Provider

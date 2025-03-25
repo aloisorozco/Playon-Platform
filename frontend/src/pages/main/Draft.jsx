@@ -31,6 +31,7 @@ function Draft() {
   const [tab, setTab] = useState('draftOrder')
   const [openSnackbar, setOpenSnackbar] = useState(false)
   const [draftedPlayerName, setDraftedPlayerName] = useState(false)
+  const [curTeamToDraftName, setCurTeamToDraftName] = useState(false)
 
   //const {id} = useParams()
 
@@ -39,6 +40,7 @@ function Draft() {
   }
 
   useEffect(() => {
+    console.log(lastDrafted) // LEAVE THIS CONSOLE LOG SNACKBAR DOESNT POP UP SOMETIMES IF NOT HERE
     if (lastDrafted == null) {
       return;
     }
@@ -53,6 +55,14 @@ function Draft() {
     setDraftedPlayerName(temp)
     setOpenSnackbar(true)
   }, [lastDrafted])
+
+  useEffect(() => {
+    if (curTeamToDraft == null) {
+      return;
+    }
+
+    setCurTeamToDraftName(findTeam(curTeamToDraft)?.name)
+  }, [curTeamToDraft])
 
   const onTabClick = (e) => {
     e.target.classList = activeTab
@@ -91,17 +101,21 @@ function Draft() {
         onClose={() => setOpenSnackbar(false)}
       >
         <Alert severity="success">
-          {`${draftedPlayerName} was drafted ${findTeam(lastDrafted?.team)?.name}`}
+          {`${draftedPlayerName} was drafted by ${findTeam(lastDrafted?.team)?.name}`}
         </Alert>
       </Snackbar>
-      <Snackbar
-        open={true}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert severity="info">
-          {`Currently drafting: ${findTeam(curTeamToDraft)?.name}`}
-        </Alert>
-      </Snackbar>
+      {
+        curTeamToDraftName &&
+        <Snackbar
+          open={true}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        >
+
+          <Alert severity="info">
+            {`Currently drafting: ${findTeam(curTeamToDraft)?.name}`}
+          </Alert>
+        </Snackbar>
+      }
     </>
 
   )

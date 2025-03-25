@@ -8,7 +8,7 @@ from firebase_admin import credentials
 from firebase_admin import firestore
 from google.cloud.firestore_v1.base_query import FieldFilter
 
-from totalPlayer import Player
+from classes.total_player import Player
 
 cred = credentials.Certificate("credentials.json")
 firebase_admin.initialize_app(cred)
