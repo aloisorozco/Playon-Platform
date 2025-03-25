@@ -12,7 +12,7 @@ if leagueId is None:
     print("League id not specified")
     sys.exit(1)
 
-cred = credentials.Certificate("../credentials.json")
+cred = credentials.Certificate("credentials.json")
 firebase_admin.initialize_app(cred)
 
 db = firestore.client()
