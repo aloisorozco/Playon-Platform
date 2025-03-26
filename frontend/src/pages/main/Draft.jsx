@@ -15,6 +15,10 @@ const activeTab = 'tab tab-lg tab-lifted tab-active'
 const disabledTab = 'tab tab-lg tab-lifted'
 const siblings = n => [...n.parentElement.children].filter(c => c !== n)
 
+const findTeam = (teamId, teams) => {
+  return teams?.find((team) => team.id === teamId)
+}
+
 function DraftOuter() {
   return (
     <FirestoreProvider>
@@ -34,10 +38,6 @@ function Draft() {
   const [curTeamToDraftName, setCurTeamToDraftName] = useState(false)
 
   //const {id} = useParams()
-
-  const findTeam = (teamId) => {
-    return teams.find((team) => team.id === teamId)
-  }
 
   useEffect(() => {
     console.log(lastDrafted) // LEAVE THIS CONSOLE LOG SNACKBAR DOESNT POP UP SOMETIMES IF NOT HERE
@@ -61,7 +61,7 @@ function Draft() {
       return;
     }
 
-    setCurTeamToDraftName(findTeam(curTeamToDraft)?.name)
+    setCurTeamToDraftName(findTeam(curTeamToDraft)?.name, teams)
   }, [curTeamToDraft])
 
   const onTabClick = (e) => {
@@ -101,7 +101,7 @@ function Draft() {
         onClose={() => setOpenSnackbar(false)}
       >
         <Alert severity="success">
-          {`${draftedPlayerName} was drafted by ${findTeam(lastDrafted?.team)?.name}`}
+          {`${draftedPlayerName} was drafted by ${findTeam(lastDrafted?.team, teams)?.name}`}
         </Alert>
       </Snackbar>
       {
@@ -112,7 +112,7 @@ function Draft() {
         >
 
           <Alert severity="info">
-            {`Currently drafting: ${findTeam(curTeamToDraft)?.name}`}
+            {`Currently drafting: ${findTeam(curTeamToDraft, teams)?.name}`}
           </Alert>
         </Snackbar>
       }
@@ -213,12 +213,6 @@ function DraftOrder() {
   const { firestore } = useContext(AuthContext)
   const { id, teams, draftOrder, draftedPlayers } = useContext(FirestoreContext)
 
-  const findTeam = (teamId) => {
-    return teams.find((team) => {
-      return team.id === teamId;
-    })
-  }
-
   const findDraftedPlayer = (draftedPlayerId) => {
     return draftedPlayers.find((draftedPlayer) => {
       return draftedPlayer.id === draftedPlayerId;
@@ -231,7 +225,7 @@ function DraftOrder() {
       <div className='flex flex-col space-y-4 mx-2 overflow-y-scroll h-[60vh]'>
         {draftOrder?.map((draftOrderValue, index) => (
           <DraftOrderItem draftOrderItem={{
-            name: findTeam(draftOrderValue.team)?.name,
+            name: findTeam(draftOrderValue.team, teams)?.name,
             player: findDraftedPlayer(draftOrderValue.player)?.name,
             index: ++index, //make sure it works
           }} key={index++} />

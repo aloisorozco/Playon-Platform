@@ -31,9 +31,9 @@ export const FirestoreProvider = (({ children }) => {
   }
 
   const getTeams = () => {
-    firestore.collection(`leagues/${id}/teams`).get().then((snapshot) => {
+    firestore.collection(`leagues/${id}/teams`).get().then((teams) => {
       let temp = []
-      snapshot.forEach((item) => {
+      teams.forEach((item) => {
         temp.push({ id: item.id, ...item.data() })
       })
       setTeams(temp)
