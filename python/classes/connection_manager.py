@@ -6,6 +6,8 @@ from fastapi import WebSocket
 
 class DraftConnectionManager:
     def __init__(self, league_id, db):
+        self.db = db
+        self.league_id = league_id
         self.callback_done = threading.Event()
         self.active_connections = []
         _thread = threading.Thread(target=self.wrap_async_func)
@@ -45,8 +47,24 @@ class DraftConnectionManager:
         if hasattr(self, 'draft_info'):
             await self.send_personal_message(self.draft_info, websocket)
 
-    def draft(self, drafted_info):
-        #TODO: do firebase stuff
+    def draft(self, player_id, client_id):
+        league = self.league_ref.get().to_dict()
+
+        if league['draftOrder'][league['draftPlace']]['team'] != client_id:
+            return
+        
+        self.db.collection(f'leagues/{self.league_id}/players').document(player_id).update({
+            'teamId': client_id
+        })
+        
+        league['draftOrder'][league['draftPlace']] = {
+            'team': league['draftOrder'][league['draftPlace']]['team'],
+            'player': player_id
+        }
+        league['draftPlace'] += 1
+        self.league_ref.update(league)
+
+        
         self.draft_event.set()
 
     def auto_draft(self):
@@ -56,7 +74,7 @@ class DraftConnectionManager:
     def start_auto_draft_timer(self):
         print("start_auto_draft_timer thread started")
         
-        flag = self.draft_event.wait(10)
+        flag = self.draft_event.wait() # 60
         if flag:
             print("draft_event was set to true()")
         else:

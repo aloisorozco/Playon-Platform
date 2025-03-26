@@ -15,10 +15,6 @@ const activeTab = 'tab tab-lg tab-lifted tab-active'
 const disabledTab = 'tab tab-lg tab-lifted'
 const siblings = n => [...n.parentElement.children].filter(c => c !== n)
 
-const findTeam = (teamId, teams) => {
-  return teams?.find((team) => team.id === teamId)
-}
-
 function DraftOuter() {
   return (
     <FirestoreProvider>
@@ -38,6 +34,10 @@ function Draft() {
   const [curTeamToDraftName, setCurTeamToDraftName] = useState(false)
 
   //const {id} = useParams()
+
+  const findTeam = (teamId) => {
+    return teams?.find((team) => team.id === teamId)
+  }
 
   useEffect(() => {
     console.log(lastDrafted) // LEAVE THIS CONSOLE LOG SNACKBAR DOESNT POP UP SOMETIMES IF NOT HERE
@@ -61,7 +61,7 @@ function Draft() {
       return;
     }
 
-    setCurTeamToDraftName(findTeam(curTeamToDraft)?.name, teams)
+    setCurTeamToDraftName(findTeam(curTeamToDraft)?.name)
   }, [curTeamToDraft])
 
   const onTabClick = (e) => {
@@ -123,59 +123,18 @@ function Draft() {
 
 function Players() {
   const { auth, firestore } = useContext(AuthContext)
-  const { players, teams, curTeamToDraft, id } = useContext(FirestoreContext)
+  const { players, teams, curTeamToDraft, id, draftPlayer } = useContext(FirestoreContext)
 
   const [user, loading] = useAuthState(auth)
 
   const [canDraft, setCanDraft] = useState()
-  const [playerName, setPlayerName] = useState()
-
-  const draftPlayer = async () => {
-    let player = null
-    await firestore.collection('leagues').doc(id).collection('players').where('name', '==', playerName).get().then((snapshot) => {
-      if (snapshot.empty) {
-        return
-      }
-      else {
-        snapshot.forEach((item) => {
-          player = { id: item.id, ...item.data() }
-        })
-      }
-    })
-
-    const userTeam = teams.find((team) => {
-      return team.managerId === user.uid
-    })
-
-    firestore.collection('leagues').doc(id).get().then(async (snapshot) => {
-      let draftPlace = snapshot.data().draftPlace
-      let draftOrder = snapshot.data().draftOrder
-
-      if (draftOrder[draftPlace].team !== userTeam.id || player == null) {
-        return
-      }
-
-      draftOrder.splice(draftPlace, 1, {
-        "team": draftOrder[draftPlace].team,
-        "player": player.id
-      })
-
-      await firestore.collection('leagues').doc(id).update({
-        draftPlace: draftPlace + 1,
-        draftOrder: draftOrder
-      })
-
-      await firestore.collection(`leagues/${id}/players`).doc(player.id).update({
-        teamId: userTeam.id
-      })
-    })
-  }
+  const [playerId, setPlayerId] = useState()
 
   useEffect(() => {
-    if (playerName != null) {
-      draftPlayer()
+    if (playerId != null) {
+      draftPlayer(playerId)
     }
-  }, [playerName])
+  }, [playerId])
 
   useEffect(() => {
     const userTeam = teams.find((team) => {
@@ -201,7 +160,7 @@ function Players() {
           </div>
         </div>
         {players.map((player) => (
-          <PlayerItem player={player} key={player.id} canDraft={canDraft} setPlayerName={setPlayerName} playerType={playerItemType.undrafted} />
+          <PlayerItem player={player} key={player.id} canDraft={canDraft} setPlayerId={setPlayerId} playerType={playerItemType.undrafted} />
         ))}
       </div>
     </div>
@@ -212,6 +171,10 @@ function DraftOrder() {
 
   const { firestore } = useContext(AuthContext)
   const { id, teams, draftOrder, draftedPlayers } = useContext(FirestoreContext)
+
+  const findTeam = (teamId) => {
+    return teams?.find((team) => team.id === teamId)
+  }
 
   const findDraftedPlayer = (draftedPlayerId) => {
     return draftedPlayers.find((draftedPlayer) => {
@@ -251,7 +214,7 @@ function DraftOrderItem({ draftOrderItem }) {
           }
           <div className='flex flex-row space-x-4 justify-center'>
             <input type='text' id='position' key='position' value={draftOrderItem.index} className='w-[2ch] focus:outline-none' readOnly />
-            <input type='text' id='name' key='name' value={draftOrderItem.player ? `${draftOrderItem.name} (${draftOrderItem.player})` : draftOrderItem.name} className={`w-[30ch] focus:outline-none`} readOnly />
+            <input type='text' id='name' key='name' value={draftOrderItem.player ? `${draftOrderItem.name} (${draftOrderItem.player})` : draftOrderItem.name} className={draftOrderItem.player ? `w-[50ch] focus:outline-none` : `w-[30ch] focus:outline-none`} readOnly />
           </div>
         </form>
       </div>

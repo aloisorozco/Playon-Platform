@@ -4,6 +4,8 @@ import { useParams } from 'react-router-dom'
 
 import { useAuthState } from 'react-firebase-hooks/auth'
 
+import isEmpty from 'lodash/isEmpty';
+
 import AuthContext from './AuthContext'
 
 const FirestoreContext = createContext()
@@ -52,20 +54,28 @@ export const FirestoreProvider = (({ children }) => {
     };
   }
 
-  const getDraftedPlayers = async () => {
-    firestore.collection(`leagues/${id}/players`).orderBy('avgFantasyPoints').onSnapshot((snapshot) => {
+  const draftPlayer = (playerId) => {
+    ws.current.send(JSON.stringify({
+      playerId: playerId
+    }));
+  }
+
+  const getPlayers = async () => {
+    firestore.collection(`leagues/${id}/players`).where('teamId', '==', '').limit(50).orderBy('avgFantasyPoints').onSnapshot((snapshot) => {
       let temp = []
-      let temp2 = []
       snapshot.forEach((item) => {
-        if (item.data().teamId === '') {
-          temp2.push({ id: item.id, ...item.data() })
-        }
         temp.push({ id: item.id, ...item.data() })
       })
       temp.reverse()
-      temp2.reverse()
+      setPlayers(temp)
+    })
+
+    firestore.collection(`leagues/${id}/players`).where('teamId', '!=', '').onSnapshot((snapshot) => {
+      let temp = []
+      snapshot.forEach((item) => {
+        temp.push({ id: item.id, ...item.data() })
+      })
       setDraftedPlayers(temp)
-      setPlayers(temp2)
     })
   }
 
@@ -79,7 +89,7 @@ export const FirestoreProvider = (({ children }) => {
     getLeague()
     getTeams()
     getDraftOrder()
-    getDraftedPlayers()
+    getPlayers()
     getDraftInfo();
     return () => {
       ws.current.close();
@@ -102,7 +112,8 @@ export const FirestoreProvider = (({ children }) => {
       lastDrafted,
       setLastDrafted,
       league,
-      setLeague
+      setLeague,
+      draftPlayer
     }}
   >
     {children}

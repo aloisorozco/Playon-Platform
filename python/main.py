@@ -71,10 +71,11 @@ async def websocket_endpoint(websocket: WebSocket, league_id: str, client_id: st
     try:
         while True:
             data = await websocket.receive_json()
-            # draft_managers[league_id].draft('test')
+            print('data received from client: ' + str(data))
+            draft_managers[league_id].draft(data['playerId'], client_id)
 
-            await draft_managers[league_id].send_personal_message(f"You wrote: {data['test']}", websocket)
-            await draft_managers[league_id].broadcast(f"Client #{client_id} says: {data['test']}")
+            #await draft_managers[league_id].send_personal_message(f"You wrote: {data['test']}", websocket)
+            #await draft_managers[league_id].broadcast(f"Client #{client_id} says: {data['test']}")
     except WebSocketDisconnect as e:
         print(e)
         draft_managers[league_id].disconnect(websocket)

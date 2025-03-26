@@ -27,7 +27,7 @@ export const playerItemType = {
     team: 2
 }
 
-export default function PlayerItem({ player, playerType, canDraft = false, startDraftPlayer = null, setPlayerName = null }) {
+export default function PlayerItem({ player, playerType, canDraft = false, startDraftPlayer = null, setPlayerId = null }) {
 
     const { auth, firestore } = useContext(AuthContext)
     const { id, curTeamToDraft, teams } = useContext(FirestoreContext)
@@ -38,7 +38,7 @@ export default function PlayerItem({ player, playerType, canDraft = false, start
 
     const handleDraft = React.useCallback(
         debounce(() => {
-            setPlayerName(player.name)
+            setPlayerId(player.id)
         }, 400)
         , [])
 
