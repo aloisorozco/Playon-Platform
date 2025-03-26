@@ -231,7 +231,7 @@ function DraftOrder() {
       <div className='flex flex-col space-y-4 mx-2 overflow-y-scroll h-[60vh]'>
         {draftOrder?.map((draftOrderValue, index) => (
           <DraftOrderItem draftOrderItem={{
-            name: findTeam(draftOrderValue.team).name,
+            name: findTeam(draftOrderValue.team)?.name,
             player: findDraftedPlayer(draftOrderValue.player)?.name,
             index: ++index, //make sure it works
           }} key={index++} />

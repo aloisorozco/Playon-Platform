@@ -31,8 +31,7 @@ export const FirestoreProvider = (({ children }) => {
   }
 
   const getTeams = () => {
-    firestore.collection(`leagues/${id}/teams`).onSnapshot((snapshot) => {
-
+    firestore.collection(`leagues/${id}/teams`).get().then((snapshot) => {
       let temp = []
       snapshot.forEach((item) => {
         temp.push({ id: item.id, ...item.data() })
@@ -53,25 +52,20 @@ export const FirestoreProvider = (({ children }) => {
     };
   }
 
-  const getPlayers = async () => {
-    firestore.collection(`leagues/${id}/players`).where('teamId', '==', '').orderBy('avgFantasyPoints').onSnapshot((snapshot) => {
-      let temp = []
-      snapshot.forEach((item) => {
-        temp.push({ id: item.id, ...item.data() })
-      })
-      temp.reverse()
-      setPlayers(temp)
-    })
-  }
-
   const getDraftedPlayers = async () => {
     firestore.collection(`leagues/${id}/players`).orderBy('avgFantasyPoints').onSnapshot((snapshot) => {
       let temp = []
+      let temp2 = []
       snapshot.forEach((item) => {
+        if (item.data().teamId === '') {
+          temp2.push({ id: item.id, ...item.data() })
+        }
         temp.push({ id: item.id, ...item.data() })
       })
       temp.reverse()
+      temp2.reverse()
       setDraftedPlayers(temp)
+      setPlayers(temp2)
     })
   }
 
@@ -84,7 +78,6 @@ export const FirestoreProvider = (({ children }) => {
   useEffect(() => {
     getLeague()
     getTeams()
-    getPlayers()
     getDraftOrder()
     getDraftedPlayers()
     getDraftInfo();

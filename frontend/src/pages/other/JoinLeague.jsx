@@ -24,7 +24,7 @@ function JoinLeague() {
         setError(null)
       }, 5000)
     }
-  }, error)
+  }, [error])
 
   // const generalRef = collection(db, `users/${user.id}/general`);
   // const general = awaitDoc(generalRef, {
@@ -33,7 +33,7 @@ function JoinLeague() {
 
   const addTeam = async (leagueId) => {
     while (loading);
-    firestore.collection(`leagues/${leagueId}/teams`).add({
+    firestore.collection(`leagues/${leagueId}/teams`).doc(user.uid).set({
       managerId: user.uid,
       name: `${user.displayName}'s Team`,
     }).then((ref) => {
@@ -51,7 +51,7 @@ function JoinLeague() {
 
       querySnapshot.forEach((doc) => {
         while (loading);
-        if (user.uid == doc.data().managerId) {
+        if (user.uid === doc.data().managerId) {
           inLeague = true
         }
       })
