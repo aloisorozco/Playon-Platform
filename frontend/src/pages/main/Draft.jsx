@@ -26,12 +26,12 @@ function DraftOuter() {
 function Draft() {
 
   const { firestore } = useContext(AuthContext)
-  const { teams, draftedPlayers, lastDrafted, curTeamToDraft } = useContext(FirestoreContext)
+  const { teams, draftedPlayers, lastDrafted, curTeamToDraft, timer } = useContext(FirestoreContext)
 
   const [tab, setTab] = useState('draftOrder')
   const [openSnackbar, setOpenSnackbar] = useState(false)
   const [draftedPlayerName, setDraftedPlayerName] = useState(false)
-  const [curTeamToDraftName, setCurTeamToDraftName] = useState(false)
+  const [curTeamToDraftName, setCurTeamToDraftName] = useState(null)
 
   //const {id} = useParams()
 
@@ -61,7 +61,7 @@ function Draft() {
       return;
     }
 
-    setCurTeamToDraftName(findTeam(curTeamToDraft)?.name)
+    setCurTeamToDraftName(findTeam(curTeamToDraft)?.name || null)
   }, [curTeamToDraft])
 
   const onTabClick = (e) => {
@@ -86,12 +86,24 @@ function Draft() {
               {(tab === 'draftOrder') && <DraftOrder />}
               {(tab === 'teams') && <Teams />}
             </div>
-
+            {
+              timer &&
+              <div className='m-5' style={{ backgroundColor: "#ddd", height: 20 }}>
+                <div
+                  style={{
+                    width: `${timer / 30 * 100}%`,
+                    height: "100%",
+                    backgroundColor: "#0070f3",
+                  }}
+                />
+              </div>
+            }
             <div className="tabs justify-center">
               <p className={disabledTab} id='players' onClick={onTabClick}>Players</p>
               <p className={activeTab} id='draftOrder' onClick={onTabClick}>Draft</p>
               <p className={disabledTab} id='teams' onClick={onTabClick}>Teams</p>
             </div>
+
           </div>
         </div>
       </div>
@@ -104,6 +116,18 @@ function Draft() {
           {`${draftedPlayerName} was drafted by ${findTeam(lastDrafted?.team, teams)?.name}`}
         </Alert>
       </Snackbar>
+      {
+        timer &&
+        <Snackbar
+          open={true}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+
+          <Alert severity="info">
+            {`It's your turn to draft! ${timer} seconds remaining`}
+          </Alert>
+        </Snackbar>
+      }
       {
         curTeamToDraftName &&
         <Snackbar
@@ -123,7 +147,7 @@ function Draft() {
 
 function Players() {
   const { auth, firestore } = useContext(AuthContext)
-  const { players, teams, curTeamToDraft, id, draftPlayer } = useContext(FirestoreContext)
+  const { players, teams, curTeamToDraft, id, draftPlayer, timer } = useContext(FirestoreContext)
 
   const [user, loading] = useAuthState(auth)
 
@@ -137,11 +161,8 @@ function Players() {
   }, [playerId])
 
   useEffect(() => {
-    const userTeam = teams.find((team) => {
-      return team.managerId === user.uid
-    })
-    setCanDraft(userTeam.id === curTeamToDraft)
-  }, [curTeamToDraft])
+    setCanDraft(timer)
+  }, [timer])
 
   return (
     <div>

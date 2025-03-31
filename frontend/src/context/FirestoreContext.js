@@ -21,6 +21,7 @@ export const FirestoreProvider = (({ children }) => {
   const [players, setPlayers] = useState([])
   const [draftedPlayers, setDraftedPlayers] = useState([])
   const [draftOrder, setDraftOrder] = useState([])
+  const [timer, setTimer] = useState(null)
 
   const { id } = useParams()
 
@@ -49,8 +50,14 @@ export const FirestoreProvider = (({ children }) => {
     ws.current.onmessage = e => {
       const message = JSON.parse(e.data);
       console.log("onmessage: ", message);
-      setCurTeamToDraft(message.curTeamToDraft)
-      setLastDrafted(message.lastDrafted)
+      if (message.remainingTime) {
+        //TODO
+        setTimer(message.remainingTime)
+      } else {
+        setTimer(null)
+        setCurTeamToDraft(message.curTeamToDraft)
+        setLastDrafted(message.lastDrafted)
+      }
     };
   }
 
@@ -61,12 +68,11 @@ export const FirestoreProvider = (({ children }) => {
   }
 
   const getPlayers = async () => {
-    firestore.collection(`leagues/${id}/players`).where('teamId', '==', '').limit(50).orderBy('avgFantasyPoints').onSnapshot((snapshot) => {
+    firestore.collection(`leagues/${id}/players`).where('teamId', '==', '').limit(50).orderBy('avgFantasyPoints', 'desc').onSnapshot((snapshot) => {
       let temp = []
       snapshot.forEach((item) => {
         temp.push({ id: item.id, ...item.data() })
       })
-      temp.reverse()
       setPlayers(temp)
     })
 
@@ -113,7 +119,8 @@ export const FirestoreProvider = (({ children }) => {
       setLastDrafted,
       league,
       setLeague,
-      draftPlayer
+      draftPlayer,
+      timer
     }}
   >
     {children}
