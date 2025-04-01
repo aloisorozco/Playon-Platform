@@ -24,6 +24,5 @@ yarn-error.log*
 
 package-lock.json
 credentials.js
-credentials.json
 /frontend/build
 /python/__pycache__
