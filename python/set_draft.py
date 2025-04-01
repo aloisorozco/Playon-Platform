@@ -36,4 +36,4 @@ for i in range(8):
 
 print(draftOrder)
 league_ref = db.collection("leagues").document(leagueId)
-league_ref.update({"draftPlace": 0, "draftOrder": draftOrder})
+league_ref.update({"draftPlace": 0, "draftOrder": draftOrder, "startDraft": False})

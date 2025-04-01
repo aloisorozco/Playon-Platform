@@ -26,7 +26,7 @@ function DraftOuter() {
 function Draft() {
 
   const { firestore } = useContext(AuthContext)
-  const { teams, draftedPlayers, lastDrafted, curTeamToDraft, timer } = useContext(FirestoreContext)
+  const { teams, draftedPlayers, lastDrafted, curTeamToDraft, timer, clientInfo, setClientInfo } = useContext(FirestoreContext)
 
   const [tab, setTab] = useState('draftOrder')
   const [openSnackbar, setOpenSnackbar] = useState(false)
@@ -113,30 +113,41 @@ function Draft() {
         onClose={() => setOpenSnackbar(false)}
       >
         <Alert severity="success">
-          {`${draftedPlayerName} was drafted by ${findTeam(lastDrafted?.team, teams)?.name}`}
+          {`${draftedPlayerName} was drafted by ${findTeam(lastDrafted?.team)?.name}`}
         </Alert>
       </Snackbar>
       {
-        timer &&
-        <Snackbar
-          open={true}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        >
+        timer ?
+          <Snackbar
+            open={true}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+          >
 
-          <Alert severity="info">
-            {`It's your turn to draft! ${timer} seconds remaining`}
-          </Alert>
-        </Snackbar>
+            <Alert severity="info">
+              {`It's your turn to draft! ${timer} seconds remaining`}
+            </Alert>
+          </Snackbar>
+          :
+          curTeamToDraftName &&
+          <Snackbar
+            open={true}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+          >
+
+            <Alert severity="info">
+              {`Currently drafting: ${findTeam(curTeamToDraft)?.name}`}
+            </Alert>
+          </Snackbar>
       }
       {
-        curTeamToDraftName &&
         <Snackbar
-          open={true}
+          open={Boolean(clientInfo?.disconnected)}
           anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          autoHideDuration={5000}
+          onClose={() => setClientInfo({ ...clientInfo, disconnected: null })}
         >
-
-          <Alert severity="info">
-            {`Currently drafting: ${findTeam(curTeamToDraft, teams)?.name}`}
+          <Alert severity="warning">
+            {`${findTeam(clientInfo?.disconnected, teams)?.name} left the draft room.`}
           </Alert>
         </Snackbar>
       }

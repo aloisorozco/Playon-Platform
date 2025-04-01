@@ -76,10 +76,6 @@ class DraftConnectionManager:
 
     def auto_draft(self):
         player_query = self.db.collection(f'leagues/{self.league_id}/players').where(filter=FieldFilter("teamId", "==", '')).limit(1).order_by('avgFantasyPoints', direction=firestore.Query.DESCENDING)
-        
-        results = player_query.get()
-        print('results')
-        print(results)
         player_to_draft =  player_query.get()[0]
 
         league = self.league_ref.get().to_dict()
@@ -105,8 +101,10 @@ class DraftConnectionManager:
             if remainingTime <= 0:
                 self.auto_draft()
                 break
-            
-            await self.send_personal_message({"remainingTime": remainingTime}, self.active_connections[self.draft_info['curTeamToDraft']])
+            try:
+                await self.send_personal_message({"remainingTime": remainingTime}, self.active_connections[self.draft_info['curTeamToDraft']])
+            except:
+                print('Current team drafting not connected.')
             remainingTime -= 1
             await asyncio.sleep(1)
 

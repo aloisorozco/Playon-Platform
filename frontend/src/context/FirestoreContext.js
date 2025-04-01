@@ -22,6 +22,7 @@ export const FirestoreProvider = (({ children }) => {
   const [draftedPlayers, setDraftedPlayers] = useState([])
   const [draftOrder, setDraftOrder] = useState([])
   const [timer, setTimer] = useState(null)
+  const [clientInfo, setClientInfo] = useState(null)
 
   const { id } = useParams()
 
@@ -44,7 +45,7 @@ export const FirestoreProvider = (({ children }) => {
   }
 
   const getDraftInfo = () => {
-    ws.current = new WebSocket(`ws://localhost:8000/draft/${id}/${user.uid}`);
+    ws.current = new WebSocket(`ws://localhost:8080/draft/${id}/${user.uid}`);
     ws.current.onopen = () => console.log("onopen");
     ws.current.onclose = () => console.log("onclose");
     ws.current.onmessage = e => {
@@ -53,6 +54,8 @@ export const FirestoreProvider = (({ children }) => {
       if (message.remainingTime) {
         //TODO
         setTimer(message.remainingTime)
+      } else if (message.clientInfo) {
+        setClientInfo({ ...clientInfo, ...message.clientInfo })
       } else {
         setTimer(null)
         setCurTeamToDraft(message.curTeamToDraft)
@@ -120,7 +123,9 @@ export const FirestoreProvider = (({ children }) => {
       league,
       setLeague,
       draftPlayer,
-      timer
+      timer,
+      clientInfo,
+      setClientInfo
     }}
   >
     {children}
