@@ -26,21 +26,19 @@ function DraftOuter() {
 function Draft() {
 
   const { firestore } = useContext(AuthContext)
-  const { teams, draftedPlayers, lastDrafted, curTeamToDraft, timer, clientInfo, setClientInfo } = useContext(FirestoreContext)
+  const { teams, draftedPlayers, lastDrafted, curTeamToDraft } = useContext(FirestoreContext)
 
   const [tab, setTab] = useState('draftOrder')
   const [openSnackbar, setOpenSnackbar] = useState(false)
   const [draftedPlayerName, setDraftedPlayerName] = useState(false)
-  const [curTeamToDraftName, setCurTeamToDraftName] = useState(null)
 
   //const {id} = useParams()
 
   const findTeam = (teamId) => {
-    return teams?.find((team) => team.id === teamId)
+    return teams.find((team) => team.id === teamId)
   }
 
   useEffect(() => {
-    console.log(lastDrafted) // LEAVE THIS CONSOLE LOG SNACKBAR DOESNT POP UP SOMETIMES IF NOT HERE
     if (lastDrafted == null) {
       return;
     }
@@ -55,14 +53,6 @@ function Draft() {
     setDraftedPlayerName(temp)
     setOpenSnackbar(true)
   }, [lastDrafted])
-
-  useEffect(() => {
-    if (curTeamToDraft == null) {
-      return;
-    }
-
-    setCurTeamToDraftName(findTeam(curTeamToDraft)?.name || null)
-  }, [curTeamToDraft])
 
   const onTabClick = (e) => {
     e.target.classList = activeTab
@@ -86,24 +76,12 @@ function Draft() {
               {(tab === 'draftOrder') && <DraftOrder />}
               {(tab === 'teams') && <Teams />}
             </div>
-            {
-              timer &&
-              <div className='m-5' style={{ backgroundColor: "#ddd", height: 20 }}>
-                <div
-                  style={{
-                    width: `${timer / 30 * 100}%`,
-                    height: "100%",
-                    backgroundColor: "#0070f3",
-                  }}
-                />
-              </div>
-            }
+
             <div className="tabs justify-center">
               <p className={disabledTab} id='players' onClick={onTabClick}>Players</p>
               <p className={activeTab} id='draftOrder' onClick={onTabClick}>Draft</p>
               <p className={disabledTab} id='teams' onClick={onTabClick}>Teams</p>
             </div>
-
           </div>
         </div>
       </div>
@@ -113,41 +91,17 @@ function Draft() {
         onClose={() => setOpenSnackbar(false)}
       >
         <Alert severity="success">
-          {`${draftedPlayerName} was drafted by ${findTeam(lastDrafted?.team)?.name}`}
+          {`${draftedPlayerName} was drafted ${findTeam(lastDrafted?.team)?.name}`}
         </Alert>
       </Snackbar>
       {
-        timer ?
-          <Snackbar
-            open={true}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-          >
-
-            <Alert severity="info">
-              {`It's your turn to draft! ${timer} seconds remaining`}
-            </Alert>
-          </Snackbar>
-          :
-          curTeamToDraftName &&
-          <Snackbar
-            open={true}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-          >
-
-            <Alert severity="info">
-              {`Currently drafting: ${findTeam(curTeamToDraft)?.name}`}
-            </Alert>
-          </Snackbar>
-      }
-      {
+        curTeamToDraft &&
         <Snackbar
-          open={Boolean(clientInfo?.disconnected)}
+          open={true}
           anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-          autoHideDuration={5000}
-          onClose={() => setClientInfo({ ...clientInfo, disconnected: null })}
         >
-          <Alert severity="warning">
-            {`${findTeam(clientInfo?.disconnected, teams)?.name} left the draft room.`}
+          <Alert severity="info">
+            {`Currently drafting: ${findTeam(curTeamToDraft)?.name}`}
           </Alert>
         </Snackbar>
       }
@@ -158,22 +112,66 @@ function Draft() {
 
 function Players() {
   const { auth, firestore } = useContext(AuthContext)
-  const { players, teams, curTeamToDraft, id, draftPlayer, timer } = useContext(FirestoreContext)
+  const { players, teams, curTeamToDraft, id } = useContext(FirestoreContext)
 
   const [user, loading] = useAuthState(auth)
 
   const [canDraft, setCanDraft] = useState()
-  const [playerId, setPlayerId] = useState()
+  const [playerName, setPlayerName] = useState()
+
+  const draftPlayer = async () => {
+    let player = null
+    await firestore.collection('leagues').doc(id).collection('players').where('name', '==', playerName).get().then((snapshot) => {
+      if (snapshot.empty) {
+        return
+      }
+      else {
+        snapshot.forEach((item) => {
+          player = { id: item.id, ...item.data() }
+        })
+      }
+    })
+
+    const userTeam = teams.find((team) => {
+      return team.managerId === user.uid
+    })
+
+    firestore.collection('leagues').doc(id).get().then(async (snapshot) => {
+      let draftPlace = snapshot.data().draftPlace
+      let draftOrder = snapshot.data().draftOrder
+
+      if (draftOrder[draftPlace].team !== userTeam.id || player == null) {
+        return
+      }
+
+      draftOrder.splice(draftPlace, 1, {
+        "team": draftOrder[draftPlace].team,
+        "player": player.id
+      })
+
+      await firestore.collection('leagues').doc(id).update({
+        draftPlace: draftPlace + 1,
+        draftOrder: draftOrder
+      })
+
+      await firestore.collection(`leagues/${id}/players`).doc(player.id).update({
+        teamId: userTeam.id
+      })
+    })
+  }
 
   useEffect(() => {
-    if (playerId != null) {
-      draftPlayer(playerId)
+    if (playerName != null) {
+      draftPlayer()
     }
-  }, [playerId])
+  }, [playerName])
 
   useEffect(() => {
-    setCanDraft(timer)
-  }, [timer])
+    const userTeam = teams.find((team) => {
+      return team.managerId === user.uid
+    })
+    setCanDraft(userTeam.id === curTeamToDraft)
+  }, [curTeamToDraft])
 
   return (
     <div>
@@ -192,7 +190,7 @@ function Players() {
           </div>
         </div>
         {players.map((player) => (
-          <PlayerItem player={player} key={player.id} canDraft={canDraft} setPlayerId={setPlayerId} playerType={playerItemType.undrafted} />
+          <PlayerItem player={player} key={player.id} canDraft={canDraft} setPlayerName={setPlayerName} playerType={playerItemType.undrafted} />
         ))}
       </div>
     </div>
@@ -205,7 +203,9 @@ function DraftOrder() {
   const { id, teams, draftOrder, draftedPlayers } = useContext(FirestoreContext)
 
   const findTeam = (teamId) => {
-    return teams?.find((team) => team.id === teamId)
+    return teams.find((team) => {
+      return team.id === teamId;
+    })
   }
 
   const findDraftedPlayer = (draftedPlayerId) => {
@@ -220,7 +220,7 @@ function DraftOrder() {
       <div className='flex flex-col space-y-4 mx-2 overflow-y-scroll h-[60vh]'>
         {draftOrder?.map((draftOrderValue, index) => (
           <DraftOrderItem draftOrderItem={{
-            name: findTeam(draftOrderValue.team, teams)?.name,
+            name: findTeam(draftOrderValue.team).name,
             player: findDraftedPlayer(draftOrderValue.player)?.name,
             index: ++index, //make sure it works
           }} key={index++} />
