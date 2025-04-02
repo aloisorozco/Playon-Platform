@@ -336,31 +336,4 @@ function Teams() {
   )
 }
 
-function TeamPlayerItem({ player }) {
-
-  const handleNothing = (e) => {
-    e.preventDefault()
-  }
-
-  return (
-    <div className='hover' id={player.id} key={player.id}>
-      <div>
-        <form onSubmit={handleNothing}>
-          <div className='flex flex-row space-x-4 justify-center'>
-            {
-              window.innerWidth > 768 &&
-              <>
-                <input type='text' id='team' key='team' value={player.team} className='w-[8ch] focus:outline-none bold' readOnly />
-                <input type='text' id='position' key='position' value={player.position} className='w-[5ch] focus:outline-none' readOnly />
-              </>
-            }
-            <input type='text' id='name' key='name' value={player.name} className={`w-[30ch] focus:outline-none`} readOnly />
-            <input type='text' id='avgFantasyPoints' key='avgFantasyPoints' value={player.avgFantasyPoints.toFixed(1)} className={`w-[15ch] focus:outline-none`} readOnly />
-          </div>
-        </form>
-      </div>
-    </div>
-  )
-}
-
 export default DraftOuter
