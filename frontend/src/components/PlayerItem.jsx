@@ -50,10 +50,15 @@ export default function PlayerItem({ player, playerType, canDraft = false, start
                         <form>
                             <div className='flex flex-row space-x-4 justify-center'>
                                 <div className='hover:scale-105' onClick={() => setOpen(true)}>
-                                    <input type='text' id='team' key='team' value={player.team} className='w-[8ch] focus:outline-none bold' readOnly />
-                                    <input type='text' id='position' key='position' value={player.position} className='w-[5ch] focus:outline-none' readOnly />
-                                    <input type='text' id='name' key='name' value={player.name} className={`w-[30ch] focus:outline-none cursor-pointer`} readOnly />
-                                    <input type='text' id='avgFantasyPoints' key='avgFantasyPoints' value={player.avgFantasyPoints.toFixed(1)} className={`w-[5ch] focus:outline-none`} readOnly />
+                                    {
+                                        window.innerWidth > 768 &&
+                                        <>
+                                            <input type='text' id='team' key='team' value={player.team} className='w-[8ch] focus:outline-none bold' readOnly />
+                                            <input type='text' id='position' key='position' value={player.position} className='w-[5ch] focus:outline-none' readOnly />
+                                        </>
+                                    }
+                                    <input type='text' id='name' key='name' value={player.name} className={`w-[50vw] lg:w-[30ch] focus:outline-none cursor-pointer`} readOnly />
+                                    <input type='text' id='avgFantasyPoints' key='avgFantasyPoints' value={player.avgFantasyPoints.toFixed(1)} className={`w-[10vw] lg:w-[5ch] focus:outline-none`} readOnly />
                                 </div>
                                 {(/*todo*/ canDraft) ?
                                     <div className='pr-4'>
@@ -75,10 +80,15 @@ export default function PlayerItem({ player, playerType, canDraft = false, start
                             <form>
                                 <div className='flex flex-row space-x-4 justify-center'>
                                     <div className='hover:scale-105' onClick={() => setOpen(true)}>
-                                        <input type='text' id='team' key='team' value={player.team} className='w-[8ch] focus:outline-none bold' readOnly />
-                                        <input type='text' id='position' key='position' value={player.position} className='w-[5ch] focus:outline-none' readOnly />
-                                        <input type='text' id='name' key='name' value={player.name} className={`w-[30ch] focus:outline-none cursor-pointer`} readOnly />
-                                        <input type='text' id='avgFantasyPoints' key='avgFantasyPoints' value={player.avgFantasyPoints.toFixed(1)} className={`w-[15ch] focus:outline-none`} readOnly />
+                                        {
+                                            window.innerWidth > 768 &&
+                                            <>
+                                                <input type='text' id='team' key='team' value={player.team} className='w-[8ch] focus:outline-none bold' readOnly />
+                                                <input type='text' id='position' key='position' value={player.position} className='w-[5ch] focus:outline-none' readOnly />
+                                            </>
+                                        }
+                                        <input type='text' id='name' key='name' value={player.name} className={`w-[50vw] lg:w-[30ch] focus:outline-none cursor-pointer`} readOnly />
+                                        <input type='text' id='avgFantasyPoints' key='avgFantasyPoints' value={player.avgFantasyPoints.toFixed(1)} className={`w-[10vw] lg:w-[15ch] focus:outline-none`} readOnly />
                                     </div>
                                 </div>
                             </form>
@@ -91,10 +101,15 @@ export default function PlayerItem({ player, playerType, canDraft = false, start
                                 <form>
                                     <div className='flex flex-row space-x-4 justify-center'>
                                         <div className='hover:scale-105' onClick={() => setOpen(true)}>
-                                            <input type='text' id='team' key='team' value={player.team} className='w-[8ch] focus:outline-none bold' readOnly />
-                                            <input type='text' id='position' key='position' value={player.position} className='w-[5ch] focus:outline-none' readOnly />
-                                            <input type='text' id='name' key='name' value={player.name} className={`w-[30ch] focus:outline-none cursor-pointer`} readOnly />
-                                            <input type='text' id='pointsAccumulated' key='pointsAccumulated' value={player?.pointsAccumulated?.toFixed(1) || 0.0.toFixed(1)} className={`w-[5ch] focus:outline-none`} readOnly />
+                                            {
+                                                window.innerWidth > 768 &&
+                                                <>
+                                                    <input type='text' id='team' key='team' value={player.team} className='w-[8ch] focus:outline-none bold' readOnly />
+                                                    <input type='text' id='position' key='position' value={player.position} className='w-[5ch] focus:outline-none' readOnly />
+                                                </>
+                                            }
+                                            <input type='text' id='name' key='name' value={player.name} className={`w-[50vw] lg:w-[30ch] focus:outline-none cursor-pointer`} readOnly />
+                                            <input type='text' id='pointsAccumulated' key='pointsAccumulated' value={player?.pointsAccumulated?.toFixed(1) || 0.0.toFixed(1)} className={`w-[10vw] lg:w-[5ch] focus:outline-none`} readOnly />
                                         </div>
                                     </div>
                                 </form>
@@ -121,15 +136,30 @@ function PlayerPopup({ player, open, setOpen, playerType, canDraft = false, hand
             </DialogTitle>
             <DialogContent>
                 <TableContainer>
-                    <Table aria-label="simple table">
+                    <Table>
                         <TableHead>
                             <TableRow>
-                                <TableCell align="right">Points</TableCell>
-                                <TableCell align="right">Assists</TableCell>
-                                <TableCell align="right">Rebounds</TableCell>
-                                <TableCell align="right">Steals</TableCell>
-                                <TableCell align="right">Blocks</TableCell>
-                                <TableCell align="right">Turnovers</TableCell>
+                                {
+                                    window.innerWidth > 768 ?
+                                        <>
+                                            <TableCell align="right">Points</TableCell>
+                                            <TableCell align="right">Assists</TableCell>
+                                            <TableCell align="right">Rebounds</TableCell>
+                                            <TableCell align="right">Steals</TableCell>
+                                            <TableCell align="right">Blocks</TableCell>
+                                            <TableCell align="right">Turnovers</TableCell>
+                                        </>
+                                        :
+                                        <>
+                                            <TableCell align="right">Pts</TableCell>
+                                            <TableCell align="right">Ast</TableCell>
+                                            <TableCell align="right">Trb</TableCell>
+                                            <TableCell align="right">Stl</TableCell>
+                                            <TableCell align="right">Blk</TableCell>
+                                            <TableCell align="right">Tov</TableCell>
+                                        </>
+                                }
+
                             </TableRow>
                         </TableHead>
                         <TableBody>

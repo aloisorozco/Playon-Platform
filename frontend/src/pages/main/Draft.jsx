@@ -65,7 +65,7 @@ function Draft() {
   return (
     <>
       <div className='grid place-items-center'>
-        <div className='card w-[60vw] max-w-[800px] bg-base 100 shadow-xl'>
+        <div className='card w-[95vw] lg:w-[60vw] max-w-[800px] bg-base 100 shadow-xl'>
           {/* {<div className='card-title p-2 justify-center'>
           Draft
         </div>} */}
@@ -89,6 +89,8 @@ function Draft() {
         open={openSnackbar}
         autoHideDuration={5000}
         onClose={() => setOpenSnackbar(false)}
+        anchorOrigin={window.innerWidth > 768 ? { vertical: 'bottom', horizontal: 'left' } : { vertical: 'top', horizontal: 'left' }}
+        sx={window.innerWidth > 768 ? {} : { marginTop: '8vh' }}
       >
         <Alert severity="success">
           {`${draftedPlayerName} was drafted ${findTeam(lastDrafted?.team)?.name}`}
@@ -181,19 +183,26 @@ function Players() {
           <div>
             <form>
               <div className='flex flex-row space-x-4 justify-center'>
-                <input type='text' id='team' key='team' value="Team" className='w-[6ch] focus:outline-none' readOnly />
-                <input type='text' id='position' key='position' value="Position" className='w-[10ch] focus:outline-none' readOnly />
-                <input type='text' id='name' key='name' value='Name' className={`w-[20ch] focus:outline-none`} readOnly />
-                <input type='text' id='avgFantasyPoints' key='avgFantasyPoints' value="Average Fantasy Points" className={`w-[25ch] focus:outline-none`} readOnly />
+                {
+                  window.innerWidth > 768 &&
+                  <>
+                    <input type='text' id='team' key='team' value="Team" className='w-[6ch] focus:outline-none' readOnly />
+                    <input type='text' id='position' key='position' value="Position" className='w-[10ch] focus:outline-none' readOnly />
+                  </>
+                }
+                <input type='text' id='name' key='name' value='Name' className={`w-[30vw] lg:w-[20ch] focus:outline-none`} readOnly />
+                <input type='text' id='avgFantasyPoints' key='avgFantasyPoints' value={window.innerWidth > 768 ? "Average Fantasy Points" : "Avg Points"} className={`w-[30vw] lg:w-[25ch] focus:outline-none`} readOnly />
               </div>
             </form>
           </div>
         </div>
-        {players.map((player) => (
-          <PlayerItem player={player} key={player.id} canDraft={canDraft} setPlayerName={setPlayerName} playerType={playerItemType.undrafted} />
-        ))}
-      </div>
-    </div>
+        {
+          players.map((player) => (
+            <PlayerItem player={player} key={player.id} canDraft={canDraft} setPlayerName={setPlayerName} playerType={playerItemType.undrafted} />
+          ))
+        }
+      </div >
+    </div >
   )
 }
 
@@ -306,10 +315,15 @@ function Teams() {
           <div>
             <form>
               <div className='flex flex-row space-x-4 justify-center'>
-                <input type='text' id='team' key='team' value="Team" className='w-[6ch] focus:outline-none' readOnly />
-                <input type='text' id='position' key='position' value="Position" className='w-[10ch] focus:outline-none' readOnly />
-                <input type='text' id='name' key='name' value='Name' className={`w-[20ch] focus:outline-none`} readOnly />
-                <input type='text' id='avgFantasyPoints' key='avgFantasyPoints' value="Average Fantasy Points" className={`w-[20ch] focus:outline-none`} readOnly />
+                {
+                  window.innerWidth > 768 &&
+                  <>
+                    <input type='text' id='team' key='team' value="Team" className='w-[6ch] focus:outline-none' readOnly />
+                    <input type='text' id='position' key='position' value="Position" className='w-[10ch] focus:outline-none' readOnly />
+                  </>
+                }
+                <input type='text' id='name' key='name' value='Name' className={`w-[30vw] lg:w-[20ch] focus:outline-none`} readOnly />
+                <input type='text' id='avgFantasyPoints' key='avgFantasyPoints' value={window.innerWidth > 768 ? "Average Fantasy Points" : "Average Points"} className={`w-[30vw] lg:w-[20ch] focus:outline-none`} readOnly />
               </div>
             </form>
           </div>
@@ -333,8 +347,13 @@ function TeamPlayerItem({ player }) {
       <div>
         <form onSubmit={handleNothing}>
           <div className='flex flex-row space-x-4 justify-center'>
-            <input type='text' id='team' key='team' value={player.team} className='w-[8ch] focus:outline-none bold' readOnly />
-            <input type='text' id='position' key='position' value={player.position} className='w-[5ch] focus:outline-none' readOnly />
+            {
+              window.innerWidth > 768 &&
+              <>
+                <input type='text' id='team' key='team' value={player.team} className='w-[8ch] focus:outline-none bold' readOnly />
+                <input type='text' id='position' key='position' value={player.position} className='w-[5ch] focus:outline-none' readOnly />
+              </>
+            }
             <input type='text' id='name' key='name' value={player.name} className={`w-[30ch] focus:outline-none`} readOnly />
             <input type='text' id='avgFantasyPoints' key='avgFantasyPoints' value={player.avgFantasyPoints.toFixed(1)} className={`w-[15ch] focus:outline-none`} readOnly />
           </div>

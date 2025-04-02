@@ -67,7 +67,7 @@ function Team() {
 
   return (
     <div className='grid place-items-center'>
-      <div className="card w-[60vw] bg-base-100 shadow-xl">
+      <div className="card w-[95vw] lg:w-[60vw] bg-base-100 shadow-xl">
         <table className="table text-lg w-full text-center">
           {/* head */}
           <thead>
@@ -90,8 +90,13 @@ function Team() {
             <div>
               <form>
                 <div className='flex flex-row space-x-4 justify-center'>
-                  <input type='text' id='team' key='team' value="Team" className='w-[6ch] focus:outline-none' readOnly />
-                  <input type='text' id='position' key='position' value="Position" className='w-[10ch] focus:outline-none' readOnly />
+                  {
+                    window.innerWidth > 768 &&
+                    <>
+                      <input type='text' id='team' key='team' value="Team" className='w-[6ch] focus:outline-none' readOnly />
+                      <input type='text' id='position' key='position' value="Position" className='w-[10ch] focus:outline-none' readOnly />
+                    </>
+                  }
                   <input type='text' id='name' key='name' value='Name' className={`w-[10ch] focus:outline-none`} readOnly />
                   <input type='text' id='pointsAccumulated' key='pointsAccumulated' value="Points Accumulated" className={`w-[20ch] focus:outline-none`} readOnly />
                 </div>
