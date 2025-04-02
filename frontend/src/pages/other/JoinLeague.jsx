@@ -97,7 +97,7 @@ function JoinLeague() {
 
   return (
     <div className='grid place-items-center'>
-      <div className="card w-[80vw] lg:w-[60vw] bg-base-100 shadow-xl">
+      <div className="card w-[80vw] lg:w-80 bg-base-100 shadow-xl">
         <div className="card-body items-center text-center">
           <h2 className="card-title mb-2">Join League</h2>
 

@@ -67,7 +67,7 @@ function Team() {
 
   return (
     <div className='grid place-items-center'>
-      <div className="card w-[95vw] lg:w-[60vw] bg-base-100 shadow-xl">
+      <div className="card w-[95vw] lg:w-[60vw] max-w-[800px] bg-base-100 shadow-xl">
         <table className="table text-lg w-full text-center">
           {/* head */}
           <thead>
