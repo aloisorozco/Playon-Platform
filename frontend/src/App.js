@@ -1,24 +1,18 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import './App.css';
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import "./App.css";
 
-import 'firebase/compat/firestore';
-import 'firebase/compat/auth';
+import "firebase/compat/firestore";
+import "firebase/compat/auth";
 
-import Main from './pages/main/Main';
-import Login from './pages/auth/Login';
+import Main from "./pages/main/Main";
+import Login from "./pages/auth/Login";
 
-import Navbar from './components/Navbar';
-import Protected from './util/Protected';
-import { AuthProvider } from './context/AuthContext';
-import League from './pages/main/League';
-import Team from './pages/main/Team';
-import JoinLeague from './pages/other/JoinLeague';
-import EditTeam from './pages/other/EditTeam';
-import ProtectedEditTeam from './util/ProtectedEditTeam';
-import EditLeague from './pages/other/EditLeague';
-import ProtectedEditLeague from './util/ProtectedEditLeague';
-import { FirestoreProvider } from './context/FirestoreContext';
-import Draft from './pages/main/Draft';
+import Navbar from "./components/Navbar";
+import Protected from "./util/Protected";
+import { AuthProvider } from "./context/AuthContext";
+import League from "./pages/main/League";
+import Team from "./pages/main/Team";
+import Draft from "./pages/main/Draft";
 
 /**
  * TODO
@@ -29,47 +23,32 @@ import Draft from './pages/main/Draft';
  */
 
 function App() {
-
   return (
-
     <AuthProvider>
       <BrowserRouter>
+        <div className="app-shell">
+          <Navbar />
 
-        <Navbar />
+          <Routes>
+            <Route path="/login" element={<Login />} />
 
-        <Routes>
+            <Route path="/" element={<Protected />}>
+              <Route path="/" element={<Main />} />
+            </Route>
 
-          <Route path='/login' element={<Login />} />
+            <Route path="/league/:id" element={<Protected />}>
+              <Route path="/league/:id" element={<League />} />
+            </Route>
 
-          <Route path='/' element={<Protected />}>
-            <Route path='/' element={<Main />} />
-          </Route>
+            <Route path="league/:id/team/:teamId" element={<Protected />}>
+              <Route path="/league/:id/team/:teamId" element={<Team />} />
+            </Route>
 
-          <Route path='/league/:id' element={<Protected />}>
-            <Route path='/league/:id' element={<League />} />
-          </Route>
-
-          <Route path='league/:id/team/:teamId' element={<Protected />}>
-            <Route path='/league/:id/team/:teamId' element={<Team />} />
-          </Route>
-
-          <Route path='/joinLeague' element={<Protected />}>
-            <Route path='/joinLeague' element={<JoinLeague />} />
-          </Route>
-
-          <Route path='/league/:leagueId/team/:teamId/edit' element={<ProtectedEditTeam />}>
-            <Route path='/league/:leagueId/team/:teamId/edit' element={<EditTeam />} />
-          </Route>
-
-          <Route path='/league/:id/edit' element={<ProtectedEditLeague />}>
-            <Route path='/league/:id/edit' element={<EditLeague />} />
-          </Route>
-
-          <Route path='/league/:id/draft' element={<Protected />}>
-            <Route path='/league/:id/draft' element={<Draft />} />
-          </Route>
-
-        </Routes>
+            <Route path="/league/:id/draft" element={<Protected />}>
+              <Route path="/league/:id/draft" element={<Draft />} />
+            </Route>
+          </Routes>
+        </div>
       </BrowserRouter>
     </AuthProvider>
   );
