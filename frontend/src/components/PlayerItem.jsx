@@ -1,169 +1,203 @@
-import React, { useContext, useState, useEffect, useRef } from 'react'
-
-import 'firebase/compat/firestore'
-import 'firebase/compat/auth'
-import { useAuthState } from 'react-firebase-hooks/auth'
-
-import AuthContext from '../context/AuthContext'
-
-import { debounce } from "lodash"
-
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogTitle from '@mui/material/DialogTitle';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-
-import FirestoreContext from '../context/FirestoreContext'
+import React, { useState } from "react";
+import {
+  Avatar,
+  Box,
+  Button,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Stack,
+  Typography,
+} from "@mui/material";
 
 export const playerItemType = {
-    undrafted: 0,
-    drafted: 1,
-    team: 2
-}
+  undrafted: 0,
+  drafted: 1,
+  team: 2,
+};
 
-export default function PlayerItem({ player, playerType, canDraft = false, startDraftPlayer = null, setPlayerId = null }) {
+export default function PlayerItem({
+  player,
+  playerType,
+  canDraft = false,
+  setPlayerId = null,
+}) {
+  const [open, setOpen] = useState(false);
+  const isTeamPlayer = playerType === playerItemType.team;
+  const points = isTeamPlayer
+    ? player?.pointsAccumulated
+    : player?.avgFantasyPoints;
+  const initials = (player.name || "?")
+    .split(" ")
+    .map((part) => part[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 
-    const { auth, firestore } = useContext(AuthContext)
-    const { id, curTeamToDraft, teams } = useContext(FirestoreContext)
+  const handleDraft = () => {
+    if (setPlayerId) setPlayerId(player.id);
+  };
 
-    const [user, loading] = useAuthState(auth)
-
-    const [open, setOpen] = React.useState(false);
-
-    const handleDraft = React.useCallback(
-        debounce(() => {
-            setPlayerId(player.id)
-        }, 400)
-        , [])
-
-    return (
-        <>
-            {playerType === playerItemType.undrafted ?
-                <div id={player.id} key={player.id} >
-                    <div>
-                        <form>
-                            <div className='flex flex-row space-x-4 justify-center'>
-                                <div className='hover:scale-105' onClick={() => setOpen(true)}>
-                                    <input type='text' id='team' key='team' value={player.team} className='w-[8ch] focus:outline-none bold' readOnly />
-                                    <input type='text' id='position' key='position' value={player.position} className='w-[5ch] focus:outline-none' readOnly />
-                                    <input type='text' id='name' key='name' value={player.name} className={`w-[30ch] focus:outline-none cursor-pointer`} readOnly />
-                                    <input type='text' id='avgFantasyPoints' key='avgFantasyPoints' value={player.avgFantasyPoints.toFixed(1)} className={`w-[5ch] focus:outline-none`} readOnly />
-                                </div>
-                                {(/*todo*/ canDraft) ?
-                                    <div className='pr-4'>
-                                        <button type="button" className='btn btn-sm' onClick={handleDraft}>Draft</button>
-                                    </div>
-                                    :
-                                    <div className='pr-4'>
-                                        <button type="button" className='btn btn-sm btn-disabled'>Draft</button>
-                                    </div>
-                                }
-                            </div>
-                        </form>
-                    </div>
-                </div>
-                :
-                playerType === playerItemType.drafted ?
-                    <div id={player.id} key={player.id} >
-                        <div>
-                            <form>
-                                <div className='flex flex-row space-x-4 justify-center'>
-                                    <div className='hover:scale-105' onClick={() => setOpen(true)}>
-                                        <input type='text' id='team' key='team' value={player.team} className='w-[8ch] focus:outline-none bold' readOnly />
-                                        <input type='text' id='position' key='position' value={player.position} className='w-[5ch] focus:outline-none' readOnly />
-                                        <input type='text' id='name' key='name' value={player.name} className={`w-[30ch] focus:outline-none cursor-pointer`} readOnly />
-                                        <input type='text' id='avgFantasyPoints' key='avgFantasyPoints' value={player.avgFantasyPoints.toFixed(1)} className={`w-[15ch] focus:outline-none`} readOnly />
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                    :
-                    playerType === playerItemType.team ?
-                        <div id={player.id} key={player.id} >
-                            <div>
-                                <form>
-                                    <div className='flex flex-row space-x-4 justify-center'>
-                                        <div className='hover:scale-105' onClick={() => setOpen(true)}>
-                                            <input type='text' id='team' key='team' value={player.team} className='w-[8ch] focus:outline-none bold' readOnly />
-                                            <input type='text' id='position' key='position' value={player.position} className='w-[5ch] focus:outline-none' readOnly />
-                                            <input type='text' id='name' key='name' value={player.name} className={`w-[30ch] focus:outline-none cursor-pointer`} readOnly />
-                                            <input type='text' id='pointsAccumulated' key='pointsAccumulated' value={player?.pointsAccumulated?.toFixed(1) || 0.0.toFixed(1)} className={`w-[5ch] focus:outline-none`} readOnly />
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                        :
-                        null
-            }
-            <PlayerPopup player={player} open={open} setOpen={setOpen} playerType={playerType} canDraft={canDraft} handleDraft={handleDraft} />
-        </>
-    )
-}
-
-function PlayerPopup({ player, open, setOpen, playerType, canDraft = false, handleDraft = null }) {
-    return (
-        <Dialog
-            open={open}
-            onClose={() => setOpen(false)}
-            aria-labelledby="alert-dialog-title"
-            aria-describedby="alert-dialog-description"
+  return (
+    <>
+      <Box
+        component="button"
+        type="button"
+        onClick={() => setOpen(true)}
+        sx={{
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          gap: { xs: 1.25, sm: 2 },
+          textAlign: "left",
+          p: { xs: 1.25, sm: 1.5 },
+          border: 1,
+          borderColor: "divider",
+          borderRadius: 2.5,
+          bgcolor: "background.paper",
+          color: "text.primary",
+          cursor: "pointer",
+          transition:
+            "border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease",
+          "&:hover": {
+            borderColor: "primary.main",
+            boxShadow: "0 8px 22px rgba(20, 125, 120, 0.11)",
+            transform: "translateY(-1px)",
+          },
+        }}
+      >
+        <Avatar
+          sx={{
+            bgcolor: "primary.main",
+            width: 42,
+            height: 42,
+            fontSize: 14,
+            fontWeight: 800,
+          }}
         >
-            <DialogTitle id="alert-dialog-title">
-                {`${player.name}'s Regular Season Averages`}
-            </DialogTitle>
-            <DialogContent>
-                <TableContainer>
-                    <Table aria-label="simple table">
-                        <TableHead>
-                            <TableRow>
-                                <TableCell align="right">Points</TableCell>
-                                <TableCell align="right">Assists</TableCell>
-                                <TableCell align="right">Rebounds</TableCell>
-                                <TableCell align="right">Steals</TableCell>
-                                <TableCell align="right">Blocks</TableCell>
-                                <TableCell align="right">Turnovers</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            <TableRow
-                                key={player.name}
-                                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                            >
-                                <TableCell align="right">{player.avg_points}</TableCell>
-                                <TableCell align="right">{player.avg_assists}</TableCell>
-                                <TableCell align="right">{player.avg_rebounds}</TableCell>
-                                <TableCell align="right">{player.avg_steals}</TableCell>
-                                <TableCell align="right">{player.avg_blocks}</TableCell>
-                                <TableCell align="right">{player.avg_turnovers}</TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-            </DialogContent>
-            <DialogActions>
-                <button className='btn btn-sm' onClick={() => setOpen(false)}>Close</button>
-                {
-                    playerType === playerItemType.undrafted &&
-                    <button className='btn btn-sm' onClick={() => {
-                        setOpen(false)
-                        if (!canDraft) {
-                            return;
-                        }
-                        handleDraft()
-                    }} autoFocus disabled={!canDraft}>
-                        Draft
-                    </button>
-                }
+          {initials}
+        </Avatar>
+        <Box sx={{ minWidth: 0, flex: 1 }}>
+          <Typography
+            sx={{
+              fontWeight: 800,
+              lineHeight: 1.2,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {player.name || "Unnamed player"}
+          </Typography>
+          <Stack
+            direction="row"
+            spacing={1}
+            alignItems="center"
+            sx={{ mt: 0.6, flexWrap: "wrap" }}
+          >
+            <Typography variant="body2" color="text.secondary">
+              {player.team || "FA"}
+            </Typography>
+            <Chip
+              label={player.position || "Player"}
+              size="small"
+              variant="outlined"
+              sx={{ height: 22 }}
+            />
+          </Stack>
+        </Box>
+        <Box sx={{ textAlign: "right", flexShrink: 0 }}>
+          <Typography variant="h6" sx={{ fontWeight: 800, lineHeight: 1 }}>
+            {Number(points || 0).toFixed(1)}
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            {isTeamPlayer ? "POINTS" : "AVG"}
+          </Typography>
+        </Box>
+      </Box>
+      <PlayerPopup
+        player={player}
+        open={open}
+        setOpen={setOpen}
+        playerType={playerType}
+        canDraft={canDraft}
+        handleDraft={handleDraft}
+      />
+    </>
+  );
+}
 
-            </DialogActions>
-        </Dialog >
-    );
+function PlayerPopup({
+  player,
+  open,
+  setOpen,
+  playerType,
+  canDraft = false,
+  handleDraft = null,
+}) {
+  return (
+    <Dialog
+      open={open}
+      onClose={() => setOpen(false)}
+      aria-labelledby="alert-dialog-title"
+      aria-describedby="alert-dialog-description"
+    >
+      <DialogTitle id="alert-dialog-title" sx={{ pb: 1 }}>
+        {player.name || "Player"}
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+          Regular season averages
+        </Typography>
+      </DialogTitle>
+      <DialogContent>
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+            gap: 1,
+            minWidth: { xs: 260, sm: 420 },
+          }}
+        >
+          {[
+            ["Points", player.avg_points],
+            ["Assists", player.avg_assists],
+            ["Rebounds", player.avg_rebounds],
+            ["Steals", player.avg_steals],
+            ["Blocks", player.avg_blocks],
+            ["Turnovers", player.avg_turnovers],
+          ].map(([label, value]) => (
+            <Box
+              key={label}
+              sx={{ p: 1.25, borderRadius: 1.5, bgcolor: "action.hover" }}
+            >
+              <Typography variant="caption" color="text.secondary">
+                {label}
+              </Typography>
+              <Typography sx={{ fontWeight: 800 }}>{value ?? "-"}</Typography>
+            </Box>
+          ))}
+        </Box>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={() => setOpen(false)}>Close</Button>
+        {playerType === playerItemType.undrafted && (
+          <Button
+            variant="contained"
+            onClick={() => {
+              setOpen(false);
+              if (!canDraft) {
+                return;
+              }
+              handleDraft();
+            }}
+            autoFocus
+            disabled={!canDraft}
+          >
+            Draft
+          </Button>
+        )}
+      </DialogActions>
+    </Dialog>
+  );
 }

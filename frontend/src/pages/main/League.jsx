@@ -1,74 +1,196 @@
-import React, { useContext, useEffect, useState } from 'react'
-import { Link, useParams, useNavigate } from 'react-router-dom'
+import React, { useContext, useState } from "react";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
+import "firebase/compat/firestore";
+import "firebase/compat/auth";
+import { useAuthState } from "react-firebase-hooks/auth";
 
-import 'firebase/compat/firestore';
-import 'firebase/compat/auth';
-import { useAuthState } from 'react-firebase-hooks/auth'
+import {
+  Box,
+  Button,
+  Chip,
+  Container,
+  IconButton,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
+  Paper,
+  Stack,
+  Typography,
+} from "@mui/material";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 
-import { Button } from '@mui/material';
-
-import AuthContext from '../../context/AuthContext'
-import FirestoreContext, { FirestoreProvider } from '../../context/FirestoreContext';
+import AuthContext from "../../context/AuthContext";
+import EditNameDialog from "../../components/EditNameDialog";
+import FirestoreContext, {
+  FirestoreProvider,
+} from "../../context/FirestoreContext";
 
 function LeagueOuter() {
   return (
     <FirestoreProvider>
       <League />
     </FirestoreProvider>
-  )
+  );
 }
 
 function League() {
-  const { league, teams } = useContext(FirestoreContext)
-
-  const { auth, firestore } = useContext(AuthContext)
-  const [user, loading] = useAuthState(auth)
-  const navigate = useNavigate()
+  const { id, league, teams, players } = useContext(FirestoreContext);
+  const { auth, firestore } = useContext(AuthContext);
+  const [user] = useAuthState(auth);
+  const navigate = useNavigate();
+  const [editOpen, setEditOpen] = useState(false);
+  const teamPoints = (teamId) =>
+    players
+      .filter((player) => player.teamId === teamId)
+      .reduce(
+        (total, player) => total + (Number(player?.pointsAccumulated) || 0),
+        0,
+      );
 
   return (
-    <div className='grid place-items-center'>
-      <div className="card w-60 bg-base-100 shadow-xl">
-        <table className="table text-lg w-full text-left">
-          {/* head */}
-          <thead>
-            <tr>
-              <th className='text-lg flex flex-row justify-center'>
-                {league?.name}
-                {(user.uid === league?.managerId) &&
-                  <Link to='edit' className='pl-2 link link-hover text-center'>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
-                    </svg>
-                  </Link>
-                }
-              </th>
-            </tr>
-          </thead>
-          <tbody className='flex flex-col'>
-            {league?.draftOrder && league?.draftOrder[league?.draftPlace] &&
-              <div className='flex flex-col items-center'>
-                <button className='btn btn-md m-2' onClick={() => navigate('draft')}>Enter Draft Room</button>
-              </div>
-            }
+    <Container
+      maxWidth="md"
+      sx={{ py: { xs: 4, md: 6 } }}
+      className="page-enter"
+    >
+      <Paper
+        elevation={0}
+        sx={{
+          border: 1,
+          borderColor: "divider",
+          borderRadius: 4,
+          overflow: "hidden",
+          boxShadow: "0 20px 48px rgba(0,0,0,0.06)",
+        }}
+      >
+        <Box sx={{ p: 3, borderBottom: 1, borderColor: "divider" }}>
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            justifyContent="space-between"
+            alignItems={{ xs: "flex-start", sm: "center" }}
+            spacing={2}
+          >
+            <Box>
+              <Typography
+                variant="overline"
+                color="primary"
+                sx={{ letterSpacing: 2 }}
+              >
+                LEAGUE
+              </Typography>
+              <Typography
+                variant="h4"
+                sx={{ fontWeight: 800, letterSpacing: -0.8 }}
+              >
+                {league?.name || "League"}
+              </Typography>
+            </Box>
+            {user?.uid === league?.managerId && (
+              <IconButton
+                onClick={() => setEditOpen(true)}
+                aria-label="Edit league"
+                color="primary"
+              >
+                <EditOutlinedIcon />
+              </IconButton>
+            )}
+          </Stack>
+        </Box>
+
+        <Box sx={{ p: 3 }}>
+          {league?.draftOrder && league?.draftOrder[league?.draftPlace] && (
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={() => navigate("draft")}
+              sx={{ borderRadius: 999, px: 3, mb: 3 }}
+            >
+              Enter draft room
+            </Button>
+          )}
+
+          <Typography variant="h6" sx={{ mb: 2, fontWeight: 700 }}>
+            Teams
+          </Typography>
+          <List disablePadding sx={{ display: "grid", gap: 1 }}>
             {teams.map((team, index) => (
-              <TeamItem team={team} index={index} key={team.id} />
+              <ListItem key={team.id} disablePadding>
+                <ListItemButton
+                  component={RouterLink}
+                  to={`team/${team.id}`}
+                  sx={{
+                    borderRadius: 2,
+                    border: 1,
+                    borderColor: "divider",
+                    px: 2,
+                    py: 1.25,
+                  }}
+                >
+                  <ListItemText
+                    primary={
+                      <Stack
+                        direction="row"
+                        justifyContent="space-between"
+                        alignItems="center"
+                        spacing={2}
+                      >
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1.5,
+                          }}
+                        >
+                          <Chip
+                            label={index + 1}
+                            size="small"
+                            color={
+                              index === league?.draftPlace
+                                ? "secondary"
+                                : "default"
+                            }
+                          />
+                          <Typography
+                            variant="subtitle1"
+                            sx={{ fontWeight: 700 }}
+                          >
+                            {team.name}
+                          </Typography>
+                        </Box>
+                        <Box sx={{ textAlign: "right", flexShrink: 0 }}>
+                          <Typography
+                            variant="subtitle1"
+                            color="primary"
+                            sx={{ fontWeight: 800 }}
+                          >
+                            {teamPoints(team.id).toFixed(1)}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            POINTS
+                          </Typography>
+                        </Box>
+                      </Stack>
+                    }
+                  />
+                </ListItemButton>
+              </ListItem>
             ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  )
+          </List>
+        </Box>
+      </Paper>
+      <EditNameDialog
+        open={editOpen}
+        title="Edit league name"
+        label="League name"
+        value={league?.name}
+        onClose={() => setEditOpen(false)}
+        onSave={(name) =>
+          firestore.collection("leagues").doc(id).update({ name })
+        }
+      />
+    </Container>
+  );
 }
 
-function TeamItem({ team, index }) {
-  return (
-    <Link to={`team/${team.id}`}>
-      <tr className='hover flex flex-row' id={team.id}>
-        <th>{index + 1}</th>
-        <td className='grow'>{team.name}</td>
-      </tr>
-    </Link>
-  )
-}
-
-export default LeagueOuter
+export default LeagueOuter;
